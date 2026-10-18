@@ -42,7 +42,7 @@ Other augmentation screens do not show a consistent benefit: A01/A02 improved CE
 ## Provenance and artifacts
 
 - Runner: `experiments/a01_a02_a06_a09_a10_ctc_augmentation/train.py`; runner SHA-256 `49fbdfcd2b8fc463b18403fc59cc750cdd3001fe56c85b0ec3e415ee2edbb9d8`; run protocol and tasks: `openspec/changes/v03-a10-augmentation-seed-confirmation/`.
-- Runner source revision: `6540e1e`; current documentation revision will be recorded in Git after this report update.
+- Runner source revision: `6540e1e`; report, registry and V03 protocol are committed at `13745dd` (GitHub main).
 - Seed-1337 archive/checkpoint: [artifact bundle](https://drive.google.com/file/d/1hygqiKPrrBLutTlVEt1B5FG5_gRGeQxI/view), [checkpoint](https://drive.google.com/file/d/1Foy7Oiw34KIOcdwOuRfCbyVbVzdBouiY/view); checkpoint SHA-256 `4275fbeb83ebd6b79896edffd42c1e5bb52e165691cda280b1432ae392cfc1f8`.
 - Seed-2026 archive/checkpoint: [artifact bundle](https://drive.google.com/file/d/1oYYNvYtzzXtlT1brH_LVVEHZQAA1exYi/view), [checkpoint](https://drive.google.com/file/d/13Q4g75VlnyuC-FXOaNw0th1oTQErDMuh/view); checkpoint SHA-256 `0170343f6312fea07e62116dea796c0b80b3d47c444986d0f49ea1fcc494a971`.
 - Run-specific artifact and checkpoint links, hashes, manifests, and output paths are recorded in the tracker `Experiments` and `Evaluations` tabs.
