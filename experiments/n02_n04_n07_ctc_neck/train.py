@@ -95,7 +95,7 @@ class Network(nn.Module):
  def forward(self,x):
   feat=self.cnn(x)
   if self.exp=='N02':
-   weights=self.height_score(feat).softmax(dim=2); feat=(feat*weights).sum(dim=2); z=feat
+   weights=self.height_score(feat).softmax(dim=2); feat=(feat*weights).sum(dim=2); z=feat.transpose(1,2)
   elif self.exp=='N07':
    rgb=x*self.rgb_std+self.rgb_mean; gray=(rgb*self.luminance).sum(dim=1,keepdim=True)
    gx=torch.nn.functional.conv2d(gray,self.sobel_x,padding=1); gy=torch.nn.functional.conv2d(gray,self.sobel_y,padding=1)
