@@ -9,3 +9,10 @@
 ## Current gate decision
 
 L03/L04 are deferred. A10 results across seeds 42/1337/2026 have mean CER 53.80% (sample SD 23.50 pp) and mean exact match 11.34% (sample SD 18.58 pp). Two follow-up seeds were near-zero exact match; stable CTC convergence is not established. Clean B02 seed42 remains weak (CER 71.38%, exact match 0/244). No test/cross-data samples were read.
+## Architecture discovery loop (2026-10-19)
+
+- The 2,201/244 local in-domain exploratory split fallback reached 152/244 exact (62.2951%), CER 11.7491% with mild augmentation.
+- The controlled stronger-augmentation run reached 167/244 exact (68.4426%), CER 9.5406%, best epoch34; +15 exact samples and −2.21 CER points on the same previously exposed model-dev split. Both runs remain exploratory and below the ≥90% target.
+- Controller: 11 of 30 remote run entries completed; the local fallback is an additional completed run outside controller state. No active GPU job at this update.
+- Next screen: change only input height 48→64 while holding width320, shared K4 width320/FF640, strong augmentation, seed42, split, optimizer and budget fixed. Hypothesis: additional vertical detail may reduce character substitutions/deletions. Preserve all failures and do not use test/cross-data.
+- Strong-augmentation artifacts: run bundle https://drive.google.com/file/d/1tUn6hXZdb_LzmasPVjtKhSfPrpN6OYD1/view; report https://drive.google.com/file/d/1GsTpKVf0UejxxXnzzxsQL0B3EgDhiVOg/view; checkpoint https://drive.google.com/file/d/1S79U10HUqE6VDRjcj1r_05G5YWfIpgns/view.
