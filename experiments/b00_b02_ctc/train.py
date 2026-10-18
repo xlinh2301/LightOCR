@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sequential exploratory B00-B02 CTC architecture screen; test data is never loaded."""
+"""Exploratory CTC architecture screen; test data is never loaded."""
 import argparse, csv, hashlib, json, math, os, random, subprocess, sys, time
 from pathlib import Path
 import numpy as np
@@ -16,6 +16,8 @@ SPECS = {
  'B00': {'name':'CNN+BiLSTM+CTC', 'width_stride':4},
  'B01': {'name':'Depthwise-CNN+CTC', 'width_stride':4},
  'B02': {'name':'Depthwise-CNN+Conv1D+CTC', 'width_stride':4},
+ 'B03': {'name':'Depthwise-CNN+BiGRU+CTC', 'width_stride':4},
+ 'B04': {'name':'Standard-CNN+CTC', 'width_stride':4},
 }
 CHARS = '0123456789'
 MEAN=np.array([.485,.456,.406],np.float32); STD=np.array([.229,.224,.225],np.float32)
@@ -71,6 +73,10 @@ class DSBlock(nn.Module):
  def __init__(self,ci,co,stride=(1,1)):
   super().__init__(); self.net=nn.Sequential(nn.Conv2d(ci,ci,3,stride=stride,padding=1,groups=ci,bias=False),nn.BatchNorm2d(ci),nn.SiLU(),nn.Conv2d(ci,co,1,bias=False),nn.BatchNorm2d(co),nn.SiLU())
  def forward(self,x): return self.net(x)
+class StandardBlock(nn.Module):
+ def __init__(self,ci,co,stride=(1,1)):
+  super().__init__(); self.net=nn.Sequential(nn.Conv2d(ci,co,3,stride=stride,padding=1,bias=False),nn.BatchNorm2d(co),nn.SiLU())
+ def forward(self,x): return self.net(x)
 class Network(nn.Module):
  def __init__(self,exp):
   super().__init__(); self.exp=exp
@@ -78,12 +84,18 @@ class Network(nn.Module):
    self.cnn=nn.Sequential(nn.Conv2d(3,32,3,2,1,bias=False),nn.BatchNorm2d(32),nn.ReLU(inplace=True),nn.Conv2d(32,64,3,2,1,bias=False),nn.BatchNorm2d(64),nn.ReLU(inplace=True),nn.Conv2d(64,128,3,(2,1),1,bias=False),nn.BatchNorm2d(128),nn.ReLU(inplace=True),nn.Conv2d(128,192,3,(2,1),1,bias=False),nn.BatchNorm2d(192),nn.ReLU(inplace=True),nn.Conv2d(192,192,3,(2,1),1,bias=False),nn.BatchNorm2d(192),nn.ReLU(inplace=True))
    self.seq=nn.LSTM(192,96,batch_first=True,bidirectional=True); self.head=nn.Linear(192,11)
   else:
-   self.cnn=nn.Sequential(DSBlock(3,32,(2,2)),DSBlock(32,64,(2,2)),DSBlock(64,96,(2,1)),DSBlock(96,128,(2,1)),DSBlock(128,128,(2,1)))
-   self.temporal=nn.Conv1d(128,128,3,padding=1) if exp=='B02' else nn.Identity(); self.head=nn.Linear(128,11)
+   if exp=='B04':
+    self.cnn=nn.Sequential(StandardBlock(3,32,(2,2)),StandardBlock(32,64,(2,2)),StandardBlock(64,96,(2,1)),StandardBlock(96,128,(2,1)),StandardBlock(128,128,(2,1)))
+   else:
+    self.cnn=nn.Sequential(DSBlock(3,32,(2,2)),DSBlock(32,64,(2,2)),DSBlock(64,96,(2,1)),DSBlock(96,128,(2,1)),DSBlock(128,128,(2,1)))
+   if exp=='B02': self.temporal=nn.Conv1d(128,128,3,padding=1)
+   elif exp=='B03': self.seq=nn.GRU(128,64,batch_first=True,bidirectional=True)
+   self.head=nn.Linear(128,11)
  def forward(self,x):
   z=self.cnn(x).mean(2).transpose(1,2).contiguous()
   if self.exp=='B00': z,_=self.seq(z)
   elif self.exp=='B02': z=torch.nn.functional.silu(self.temporal(z.transpose(1,2))).transpose(1,2)
+  elif self.exp=='B03': z,_=self.seq(z)
   return self.head(z).log_softmax(-1)
 
 @torch.no_grad()
