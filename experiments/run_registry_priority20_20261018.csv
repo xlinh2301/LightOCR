@@ -1,0 +1,21 @@
+queue_id,status,run_id,seed,params,best_epoch,dev_n,dev_cer_percent,dev_exact_match_count,dev_exact_match_percent,notes
+B00,Completed,B00-CTC-S42-20261018-RETRY03,42,872043,26,244,49.20,8,3.28,Exploratory exposed model-dev
+B01,Completed,B01-CTC-S42-20261018-RETRY02,42,42828,14,244,69.08,0,0,RGB 32x192 reference
+B02,Completed,B02-CTC-S42-20261018-RETRY02,42,92108,11,244,71.38,0,0,Clean CTC reference; weak recognition
+B03,Completed,B03-CTC-S42-20261018-SCREEN01,42,117324,19,244,70.67,0,0,Exploratory exposed model-dev
+I02,Covered by B01,,,42828,,,,,,Same RGB 32x192 reference; no duplicate run
+I03,Completed,I03-CTC-S42-20261018-SCREEN01,42,42828,20,244,70.41,0,0,RGB 32x256
+I05,Completed,I05-CTC-S42-20261018-SCREEN01,42,42742,17,244,64.84,2,0.82,Grayscale
+N02,Completed,N02-CTC-S42-20261018-RETRY01,42,92237,12,244,70.76,0,0,Corrected run; initial failure retained
+N04,Completed,N04-CTC-S42-20261018-RETRY02,42,174156,14,244,67.23,0,0,Corrected run; initial failure retained
+N07,Completed,N07-CTC-S42-20261018-SCREEN01,42,117847,16,244,65.37,3,1.23,Sobel concatenation
+N08,Completed,N08-CTC-S42-20261018-SCREEN01,42,134359,18,244,72.35,0,0,Sobel gated fusion
+N09,Completed,N09-CTC-S42-20261018-SCREEN01,42,134413,12,244,70.67,1,0.41,Learned structural gated fusion
+N11,Completed,N11-CTC-S42-20261018-SCREEN01,42,141452,15,244,68.37,0,0,Wider temporal control; approximate capacity match
+A01,Completed,A01-CTC-S42-20261018-SCREEN01,42,92108,29,244,63.25088339,0,0,Brightness/contrast
+A02,Completed,A02-CTC-S42-20261018-SCREEN01,42,92108,13,244,64.57597173,3,1.229508197,Gaussian blur
+A06,Completed,A06-CTC-S42-20261018-SCREEN01,42,92108,10,244,70.67137809,0,0,Synthetic glare
+A09,Completed,A09-CTC-S42-20261018-SCREEN01,42,92108,26,244,63.25088339,4,1.639344262,Combined degradation
+A10,Completed,A10-CTC-S42-20261018-SCREEN01,42,92108,36,244,26.85512367,80,32.78688525,Combined degradation plus glare; confirmation required
+L03,Deferred,,,,,,,,,Three-seed stable CTC gate not met
+L04,Deferred,,,,,,,,,Three-seed stable CTC gate not met
