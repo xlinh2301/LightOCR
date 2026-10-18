@@ -12,7 +12,9 @@ $folderIds = @{
     checkpoint = '126H_DQHB_dkC4vZHjNc-RkM48PLfz_af'
     artifact = '1f_yCFjyXoS5YP3I00rAS5GbIBZSqKv0s'
 }
+$tempDirectory = Join-Path $repoRoot '.drive-tmp'
 $tempArchive = $null
+New-Item -ItemType Directory -Force -Path $tempDirectory | Out-Null
 
 try {
     if ($Category -eq 'source') {
@@ -20,7 +22,7 @@ try {
         if ($LASTEXITCODE -ne 0 -or -not $commit) { throw 'Source backup requires a committed Git revision.' }
         $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
         $fileName = "LightOCR-source-$commit-$stamp.zip"
-        $tempArchive = Join-Path ([IO.Path]::GetTempPath()) $fileName
+        $tempArchive = Join-Path $tempDirectory $fileName
         & git -C $repoRoot archive --format=zip --output=$tempArchive HEAD
         if ($LASTEXITCODE -ne 0) { throw 'git archive failed.' }
     }
@@ -37,7 +39,7 @@ try {
             } | Select-Object -First 1
             if ($blocked) { throw "Refusing to archive a path containing excluded content: $($blocked.FullName)" }
             $fileName = "LightOCR-$Category-$($item.Name)-$(Get-Date -Format 'yyyyMMdd-HHmmss').zip"
-            $tempArchive = Join-Path ([IO.Path]::GetTempPath()) $fileName
+            $tempArchive = Join-Path $tempDirectory $fileName
             Compress-Archive -Path (Join-Path $resolved '*') -DestinationPath $tempArchive -CompressionLevel Optimal
         }
         else {
@@ -53,7 +55,7 @@ try {
     $response | Write-Output
 }
 finally {
-    if ($tempArchive -and $tempArchive.StartsWith([IO.Path]::GetTempPath(), [StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $tempArchive)) {
+    if ($tempArchive -and $tempArchive.StartsWith($tempDirectory, [StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $tempArchive)) {
         Remove-Item -LiteralPath $tempArchive -Force
     }
 }

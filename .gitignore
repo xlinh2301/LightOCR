@@ -16,3 +16,4 @@ checkpoints/
 research/systematic_review/raw_openalex/
 # Generated Python package metadata
 *.egg-info/
+`n# Temporary archives for Google Drive uploads`n.drive-tmp/
