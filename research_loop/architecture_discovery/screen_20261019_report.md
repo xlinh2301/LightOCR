@@ -84,3 +84,20 @@ Before choosing a new model variant, review the 131 sample-level errors from the
 - Source snapshot: [Drive archive](https://drive.google.com/file/d/1PCWhwIMlMd8xvk9zWCBQUEgFZe0nSrq8/view)
 - 998k capacity follow-up: [Drive archive](https://drive.google.com/file/d/1pn4xAu6v2-jiQQbknOQ_0MBi-i4Ns48n/view)
 - 998k mild-augmentation follow-up and independent reconstruction: [Drive archive](https://drive.google.com/file/d/1SbBb4IV5vgQw1Ng6AM6NQz0xXgCPoYay/view)
+
+
+## Local split-size fallback (2201/244, seed 42)
+
+Because the long-running WSL2 ssh-client had retained a stale Docker network namespace after gluetun was restarted, a separate helper container was attached to the current VPN namespace. The original ssh-client and its established SSH process were left untouched. To keep work moving, one local Windows CUDA run used the in-domain archive already extracted from Drive. The reconstructed split has 2,201 train IDs and the same 244 previously exposed Pilot 007 model-development IDs, with zero overlap, zero missing/ambiguous images, and zero invalid labels. The training path read only the physical train folder; test/cross-data were not extracted or read. Since this differs from the historical 1,467/244 split, results are not directly comparable.
+
+| Run | Parameters | Best epoch | Exact match | CER | Edits | Runtime | Peak VRAM |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Local shared K=4 width320/FF640, mild augmentation, 48×320; 2,201/244 | 1,003,148 | 40 | 152/244 (62.2951%) | 133/1,132 (11.7491%) | 64 sub / 58 del / 11 ins | 696.919 s | 418,898,432 bytes |
+
+The independent verifier matched all 244 model-development IDs and labels. There were 31 wrong strings with the correct length. Exact match by reference length was 67/103 for four digits, 83/123 for five digits, and 1/17 for six digits; the six-digit sample is small. Most frequent aligned substitutions included 1->7 (8 cases), 0->6 (4), 9->0 (4), and 1->0 (4). Two inspected examples included one visibly blurred crop and one high-contrast crop with several CTC errors; this inspection is diagnostic only and does not establish label error or causation. Best checkpoint selection followed the predeclared lowest-CER rule, not maximum exact match. Train loss reached 0.00619 by epoch 46 while dev CER plateaued around 11.75%, consistent with continued generalization error.
+
+The run achieved 62.30% exact match, still below the 90% target (at least 220/244). It is exploratory, uses a different train count, local RTX 2050 / PyTorch 2.6.0+cu118, and the already exposed dev set. Do not describe it as independent validation. Config SHA-256 78f49938a661f0a3f10b978c5698e3cd15eca302e205a31c0c0b700ba019a9e6; checkpoint SHA-256 be5711a364e795a1c9e78fd51cba252e1f04da8d5c63944f6c547af73e9d5b8e; predictions SHA-256 68a272d6ab79830ce099226c45fd56118c6d511efba440614418dd2453578ba5; split manifest SHA-256 a6355e23ebf1d5300929784412db440858138a8295254fa7cb029c0c1be7f6f4; labels SHA-256 bd6472f8caee5728b63c6d01452a64b5c85437851ddde92442ba93ecfc3056ff. Artifact path: D:/workspace/lightocr_data/runs/loopocr-local-split2201-48x320-s42.
+
+## Next controlled follow-up
+
+Run the same seed, 2,201/244 split, 48×320 input, shared K=4 model, optimizer, batch size, schedule, and 50-epoch budget with stronger train-only augmentation (rotation ±4°, brightness/contrast ±20%, blur probability 0.10/radius ≤1.0, Gaussian noise σ=0.04). The single changed factor is augmentation strength; model-development images remain unaugmented. The hypothesis is that stronger visual perturbations will reduce the observed train/dev generalization gap and improve the 62.30% exploratory exact-match result. If it degrades, preserve the failure and return to error/data diagnosis; do not increase model size without evidence.

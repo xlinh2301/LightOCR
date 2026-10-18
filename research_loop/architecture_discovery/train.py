@@ -150,15 +150,19 @@ def evaluate(model, loader, device):
                         "reference_chars": char_count}
 
 
-def resolve_data(workdir: Path, source_root: Path):
+def resolve_data(workdir: Path, source_root: Path, expected_train_n: int = 1467,
+                 expected_model_dev_n: int = 244):
     data = workdir / "data/Indomain_curated/crops"
     cache = source_root / "EditCTC/experiments/PAE_CTC/pilot_007/cache"
     labels = json.loads((data / "train_label.json").read_text(encoding="utf-8"))
     train = sum((read_ids(cache / f"base_fit_fold_{i}.jsonl") for i in range(5)), [])
     dev = read_ids(cache / "model_dev.jsonl")
     overlap = sorted(set(train) & set(dev))
-    if len(train) != 1467 or len(dev) != 244 or overlap:
-        raise RuntimeError(f"fixed split audit failed: train={len(train)} dev={len(dev)} overlap={len(overlap)}")
+    if len(train) != expected_train_n or len(dev) != expected_model_dev_n or overlap:
+        raise RuntimeError(
+            "split audit failed: "
+            f"train={len(train)} expected_train={expected_train_n} "
+            f"dev={len(dev)} expected_dev={expected_model_dev_n} overlap={len(overlap)}")
     bad = [sid for sid in train + dev if sid not in labels or not labels.get(sid)
            or any(c not in CHARS for c in labels.get(sid, ""))]
     if bad:
@@ -177,7 +181,11 @@ def resolve_data(workdir: Path, source_root: Path):
             image_paths[sid] = path
     if missing or ambiguous:
         raise RuntimeError(f"image audit failed: missing={len(missing)} ambiguous={len(ambiguous)}")
-    audit = {"train_n": len(train), "model_dev_n": len(dev), "physical_source_counts": counts,
+    audit = {"train_n": len(train), "model_dev_n": len(dev),
+             "expected_train_n": expected_train_n,
+             "expected_model_dev_n": expected_model_dev_n,
+             "split_kind": "configured_exploratory_split" if (expected_train_n, expected_model_dev_n) != (1467, 244) else "historical_pilot007_split",
+             "physical_source_counts": counts,
              "label_file_sha256": sha256(data / "train_label.json"),
              "split_manifest_sha256": sha256(cache / "manifest.json"),
              "test_and_cross_data_read": False, "missing_ids": missing, "ambiguous_ids": ambiguous}
@@ -193,11 +201,14 @@ def run(config_path: Path, run_dir: Path):
     save_json(run_dir / "progress_summary.json", {"status": "initializing", "started_at": start})
     workdir = Path(cfg.get("workdir", WORKDIR))
     source_root = Path(cfg.get("source_root", workdir / "source"))
-    labels, train_ids, dev_ids, image_paths, audit = resolve_data(workdir, source_root)
+    labels, train_ids, dev_ids, image_paths, audit = resolve_data(
+        workdir, source_root,
+        int(cfg.get("expected_train_n", 1467)),
+        int(cfg.get("expected_model_dev_n", 244)))
     seed = int(cfg["seed"])
     random.seed(seed); np.random.seed(seed); torch.manual_seed(seed); torch.cuda.manual_seed_all(seed)
     if not torch.cuda.is_available():
-        raise RuntimeError("CUDA unavailable; this run requires MLR_LinhNX")
+        raise RuntimeError("CUDA unavailable; training requires a CUDA-capable device")
     generator = torch.Generator().manual_seed(seed)
     batch = int(cfg.get("batch_size", 32)); workers = int(cfg.get("workers", 4))
     image_height = int(cfg.get("image_height", 32)); image_width = int(cfg.get("image_width", 192))

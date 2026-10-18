@@ -19,3 +19,10 @@ Review the 131 failed model-development samples from the 48×320 run and compare
 The configurable-dimension implementation is on branch `codex/architecture-discovery-loop`; 48×320 passed local and MLR component tests before launch. The controller now records 10 completed runs out of its 30-run budget and no active job. Any subsequent run must use the existing controller and one GPU at a time. Preserve failures and do not auto-retry or terminate jobs.
 
 The Drive artifact bundle for the 48×320 run is pending upload because the local VPN tunnel is intermittently resetting. The run directory and independently reconstructed metrics are preserved on gmoe. The Pilot 007 development split is exposed; any result on it must be described as an exploratory development result, not independent validation. Do not start confirmation seeds until a recipe is frozen and an independent holdout protocol is documented.
+
+
+## 2026-10-19 local fallback result and next gate
+
+The local 48x320 run used a new 2,201/244 exploratory split because the gmoe SSH path initially failed. It completed at 152/244 exact (62.2951%), CER 11.7491%, best epoch 40; independent reconstruction matched all IDs/labels. This is 49 more exact strings than the prior remote 48x320 run, but the train count and hardware/software differ, so this is not a controlled comparison. The largest observed weakness is six-digit exact match (1/17); this estimate is imprecise. The frozen best checkpoint was selected by lowest CER (epoch 40), not best exact-match epoch. The target at least 220/244 remains unmet.
+
+Next: compare the same split and training setup with the predeclared stronger train-only augmentation variant in the report. Keep the model, data, seed, resolution, optimizer, and training budget fixed. Do not use the exposed model-dev set to claim independent confirmation. No test/cross-data has been read.
