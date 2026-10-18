@@ -1,5 +1,5 @@
 architecture_id,family,mechanism,status,params,notes
-loopocr_v1_cnn,CNN-only control,Depthwise-separable CNN with horizontal width preserved,planned,,diagnostic floor
-loopocr_v1_shared_transformer,LoopOCR-v1,One shared Transformer block recurrently applied K times,implemented_pending_tests,,K in 1/2/4/6; optional iteration code
-loopocr_v1_untied_depth4,Untied control,Four independent Transformer blocks,planned,,compute/depth control
-loopocr_v1_cnn_wide,Capacity control,Wider CNN-only stem,planned,,parameter/capacity comparator
+loopocr_v1_cnn,CNN-only control,Depthwise-separable CNN with horizontal width preserved,screen_completed,51276,"Seed-42 model-dev EM 1/244; diagnostic floor"
+loopocr_v1_shared_transformer,LoopOCR-v1,One shared Transformer block recurrently applied K times,screen_completed,"184140-184780","K=4 best in the exploratory screen at 18/244 EM; K=6 lower; next test scales K=4 to 998028 params"
+loopocr_v1_untied_depth4,Untied control,Four independent Transformer blocks,screen_completed,581452,"Lower EM than shared K=4 despite >3x parameters"
+loopocr_v1_cnn_wide,Capacity control,Wider CNN-only stem,screen_completed,83788,"Seed-42 model-dev EM 0/244; capacity-only CNN control"

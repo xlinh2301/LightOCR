@@ -1,8 +1,9 @@
 run_id,architecture_id,hypothesis,seed,status,config_sha256,source_revision,train_n,dev_n,dev_em,dev_cer,params,flops,latency_ms,peak_vram_mb,artifact_path,decision
-loopocr-cnn-control-s42,loopocr_v1_cnn,H1/H4,42,planned,,,,,,,,,,,
-loopocr-shared-k1-s42,loopocr_v1_shared_transformer,H2,42,planned,,,,,,,,,,,
-loopocr-shared-k2-s42,loopocr_v1_shared_transformer,H3,42,planned,,,,,,,,,,,
-loopocr-shared-k4-s42,loopocr_v1_shared_transformer,H3,42,planned,,,,,,,,,,,
-loopocr-shared-k6-s42,loopocr_v1_shared_transformer,H3,42,planned,,,,,,,,,,,
-loopocr-untied-depth4-s42,loopocr_v1_untied_depth4,H3/H4,42,planned,,,,,,,,,,,
-loopocr-cnn-wide-control-s42,loopocr_v1_cnn_wide,H4,42,planned,,,,,,,,,,,
+loopocr-cnn-control-s42,loopocr_v1_cnn,H1/H4,42,completed,,,1467,244,0.004098,0.673145,51276,,40.894,79.59,https://drive.google.com/file/d/1PJxP5RAauseQ6YKo8Yo8Mti0sRDWqbkL/view,"Exploratory; checkpoint and prediction hashes in tracker"
+loopocr-shared-k1-s42,loopocr_v1_shared_transformer,H2,42,completed,,,1467,244,0.012295,0.590989,184140,,33.364,94.85,https://drive.google.com/file/d/11699eMJXGgeifc4ZNVHUY_6HlGe6HsuI/view,"Exploratory; checkpoint and prediction hashes in tracker"
+loopocr-shared-k2-s42,loopocr_v1_shared_transformer,H3,42,completed,,,1467,244,0.024590,0.558304,184268,,67.135,104.66,https://drive.google.com/file/d/1JcN-SFCGovSmapn5mcYGiVEhrn4mJ02i/view,"Exploratory; checkpoint and prediction hashes in tracker"
+loopocr-shared-k4-s42,loopocr_v1_shared_transformer,H3,42,completed,,,1467,244,0.073770,0.485866,184524,,62.823,125.77,https://drive.google.com/file/d/1a1qeGz_idvFmbz5dKIIj19-YqqQfYGbr/view,"Best first-screen result; exploratory; checkpoint and prediction hashes in tracker"
+loopocr-shared-k6-s42,loopocr_v1_shared_transformer,H3,42,completed,,,1467,244,0.065574,0.509717,184780,,67.269,146.88,https://drive.google.com/file/d/1dNkP_6K8UveilDWnlnU3mIedCn0fatrI/view,"Exploratory; checkpoint and prediction hashes in tracker"
+loopocr-untied-depth4-s42,loopocr_v1_untied_depth4,H3/H4,42,completed,,,1467,244,0.024590,0.540636,581452,,69.899,130.31,https://drive.google.com/file/d/1YPlsDLvr_dbreUqqFuk1wg9r6EnJO6D6/view,"Exploratory; checkpoint and prediction hashes in tracker"
+loopocr-cnn-wide-control-s42,loopocr_v1_cnn_wide,H4,42,completed,,,1467,244,0,0.657244,83788,,32.368,87.34,https://drive.google.com/file/d/1sYiMKKwNsWuDn9lmmHPv3EumXGPBsVQd/view,"Exploratory; checkpoint and prediction hashes in tracker"
+loopocr-shared-k4-width320-s42,loopocr_v1_shared_transformer,H0/H1,42,planned,,,,,,,998028,,,,,"Next: fixed K=4 topology at ~1M params; test capacity hypothesis"

@@ -1,0 +1,26 @@
+{
+  "run_id": "loopocr-shared-k4-width320-s42",
+  "hypothesis": "The strongest first-screen topology, shared K=4, remains far below target at 184k parameters; scaling the same topology to 998,028 parameters tests whether model capacity is the limiting factor while keeping the training and data protocol fixed.",
+  "model": {
+    "width": 320,
+    "heads": 4,
+    "ff_width": 640,
+    "loops": 4,
+    "mixer": "shared",
+    "max_steps": 64,
+    "iteration_conditioning": true
+  },
+  "seed": 42,
+  "epochs": 50,
+  "patience": 10,
+  "batch_size": 32,
+  "workers": 4,
+  "optimizer": "AdamW",
+  "lr": 0.001,
+  "weight_decay": 0.0001,
+  "checkpoint_metric": "lowest model-dev CER; exact-match tie-break",
+  "selection_split": "Pilot 007 model_dev; exploratory only",
+  "test_cross_data_access": false,
+  "workdir": "/media/gmo/linhnx/workspace/workdir_Research",
+  "repo_path": "/media/gmo/linhnx/workspace/workdir_Research/source/LightOCR-1M-architecture-loop"
+}
