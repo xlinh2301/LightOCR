@@ -12,6 +12,8 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+import fcntl
+
 
 def now():
     return datetime.now(timezone.utc).isoformat()
@@ -53,6 +55,42 @@ def process_matches(pid: int, run_dir: str) -> bool:
         return run_dir in command and "architecture_discovery/train.py" in command
     except OSError:
         return False
+
+
+def find_run_process(run_dir: str):
+    for proc in Path("/proc").glob("[0-9]*/cmdline"):
+        try:
+            command = proc.read_bytes().replace(b"\0", b" ").decode(errors="replace")
+        except OSError:
+            continue
+        if run_dir in command and "architecture_discovery/train.py" in command:
+            try:
+                return int(proc.parent.name)
+            except ValueError:
+                pass
+    return None
+
+
+class ControllerLock:
+    """Single controller/queue writer per campaign; keeps separate launches serialized."""
+    def __init__(self, path: Path):
+        self.path = path
+        self.handle = None
+
+    def __enter__(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.handle = self.path.open("a+")
+        try:
+            fcntl.flock(self.handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            self.handle.close()
+            raise SystemExit(f"another controller/queue writer holds {self.path}") from exc
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if self.handle:
+            fcntl.flock(self.handle.fileno(), fcntl.LOCK_UN)
+            self.handle.close()
 
 
 def init(args):
@@ -147,6 +185,42 @@ def launch_next(state_path: Path, state: dict):
         atomic_json(state_path, state)
         return False
     run_dir = root / planned["run_id"]
+    if run_dir.exists():
+        pid = find_run_process(str(run_dir))
+        if pid is not None:
+            planned.update({"status": "running", "pid": pid, "run_dir": str(run_dir),
+                            "reconciliation_note": "Recovered matching training process after controller restart."})
+            state["status"] = "running"
+            state["updated_at"] = now()
+            atomic_json(state_path, state)
+            append_event(root / "research_loop/events.jsonl", "run_process_recovered",
+                         run_id=planned["run_id"], pid=pid)
+            return True
+        progress_file = run_dir / "progress_summary.json"
+        progress = json.loads(progress_file.read_text(encoding="utf-8")) if progress_file.exists() else {}
+        if progress.get("status") == "completed" and (run_dir / "summary.json").exists() and (run_dir / "predictions_dev.jsonl").exists():
+            planned["status"] = "completed"
+            planned["result"] = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
+            planned["finished_at"] = progress.get("finished_at", now())
+            state["updated_at"] = now()
+            atomic_json(state_path, state)
+            append_event(root / "research_loop/events.jsonl", "completed_run_recovered",
+                         run_id=planned["run_id"])
+            return True
+        if progress.get("status") == "failed":
+            planned["status"] = "failed"
+            planned["failure"] = progress
+        else:
+            planned["status"] = "interrupted_needs_review"
+            planned["reconciliation_note"] = "Run directory exists but no matching process or verified terminal result was found; no automatic retry."
+        planned["finished_at"] = now()
+        state["status"] = "paused_on_failure"
+        state["next_action"] = "human_review_failure_before_any_retry"
+        state["updated_at"] = now()
+        atomic_json(state_path, state)
+        append_event(root / "research_loop/events.jsonl", "uncertain_launch_halted",
+                     run_id=planned["run_id"], status=planned["status"])
+        return False
     run_dir.mkdir(parents=True, exist_ok=False)
     cfg_path = run_dir / "config.json"
     atomic_json(cfg_path, planned["config"])
@@ -204,7 +278,9 @@ def daemon(args):
 
 def show(args):
     state = load_state(args.state.resolve())
-    active, changed = reconcile(args.state.resolve(), state)
+    active = [r["run_id"] for r in state["runs"]
+              if r["status"] in {"running", "launching"} and r.get("pid")
+              and process_matches(int(r["pid"]), r.get("run_dir", ""))]
     counts = {}
     for run in state["runs"]:
         counts[run["status"]] = counts.get(run["status"], 0) + 1
@@ -273,7 +349,18 @@ def main():
     p.add_argument("--evidence", required=True, help="relative report/artifact that justifies this candidate")
     p.set_defaults(func=queue)
     args = parser.parse_args()
-    result = args.func(args)
+    if args.command == "init":
+        campaign = json.loads(args.campaign.read_text(encoding="utf-8"))
+        root = Path(args.output_root or campaign["output_root"]).resolve()
+        lock_path = root / "research_loop/controller.lock"
+        with ControllerLock(lock_path):
+            result = args.func(args)
+    elif args.command in {"run", "queue"}:
+        state_path = args.state.resolve()
+        with ControllerLock(state_path.parent / "controller.lock"):
+            result = args.func(args)
+    else:
+        result = args.func(args)
     if isinstance(result, int):
         raise SystemExit(result)
 

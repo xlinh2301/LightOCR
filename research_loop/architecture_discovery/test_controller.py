@@ -37,6 +37,27 @@ class ControllerTests(unittest.TestCase):
             self.assertFalse(controller.launch_next(state_path, state))
             self.assertEqual(state["status"], "paused_on_failure")
 
+    def test_controller_lock_prevents_duplicate_daemon(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            lock_path = Path(tmp) / "controller.lock"
+            with controller.ControllerLock(lock_path):
+                with self.assertRaises(SystemExit):
+                    controller.ControllerLock(lock_path).__enter__()
+
+    def test_partial_run_directory_halts_without_retry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            state_path = root / "search_state.json"
+            run_dir = root / "r1"
+            run_dir.mkdir()
+            (run_dir / "controller_manifest.json").write_text("{}")
+            state = {"output_root": str(root), "max_runs": 30, "runs": [{
+                "run_id": "r1", "status": "planned", "config": {"seed": 42},
+                "config_hash": "abc", "pid": None}]}
+            controller.atomic_json(state_path, state)
+            self.assertFalse(controller.launch_next(state_path, state))
+            self.assertEqual(state["runs"][0]["status"], "interrupted_needs_review")
+
 
 if __name__ == "__main__":
     unittest.main()
