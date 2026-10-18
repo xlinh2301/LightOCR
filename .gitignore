@@ -1,0 +1,18 @@
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.py[cod]
+research.db
+*.sqlite*
+data/
+artifacts/
+checkpoints/
+
+# Installed agent skill bundles are local tooling, not project source
+.agents/
+# Large retrieved metadata snapshots are reproducible and kept outside Git
+research/systematic_review/raw_openalex/
+# Generated Python package metadata
+*.egg-info/

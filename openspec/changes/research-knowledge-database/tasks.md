@@ -1,0 +1,7 @@
+- [x] Initialize separate local Git repository.
+- [x] Initialize OpenSpec for Codex.
+- [x] Add protocols, instructions, and ignore rules.
+- [x] Add SQLite schema and Semantic Scholar CLI.
+- [x] Install Codex research and STE skills.
+- [ ] Verify a successful Semantic Scholar query; first request returned HTTP 429.
+- [ ] Review and screen Phase 1 literature after API rate/quota issue is resolved.

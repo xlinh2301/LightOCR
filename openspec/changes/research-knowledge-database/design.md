@@ -1,0 +1,1 @@
+SQLite stores queries, papers, evidence-linked claims, and notes. FTS5 indexes metadata. The Semantic Scholar Graph API reads S2_API_KEY from ignored .env. Never store secrets or unauthorized full text. Separate source evidence from Codex synthesis.

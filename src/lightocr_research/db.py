@@ -1,0 +1,6 @@
+import os,sqlite3
+from pathlib import Path
+DB=Path(os.getenv('LIGHTOCR_DB','research.db'))
+DDL='''PRAGMA foreign_keys=ON; CREATE TABLE IF NOT EXISTS searches(id INTEGER PRIMARY KEY,query TEXT NOT NULL,year_from INTEGER,year_to INTEGER,source_api TEXT NOT NULL,retrieved_at TEXT NOT NULL,result_count INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS sources(paper_id TEXT PRIMARY KEY,title TEXT NOT NULL,authors_json TEXT,year INTEGER,venue TEXT,abstract TEXT,doi TEXT,url TEXT,pdf_url TEXT,citation_count INTEGER,publication_types_json TEXT,retrieved_at TEXT NOT NULL,search_id INTEGER REFERENCES searches(id),screening_status TEXT DEFAULT 'unreviewed',notes TEXT DEFAULT ''); CREATE TABLE IF NOT EXISTS claims(id INTEGER PRIMARY KEY,paper_id TEXT REFERENCES sources(paper_id),claim TEXT NOT NULL,evidence_locator TEXT,evidence_quote TEXT,evidence_type TEXT,confidence TEXT,entered_at TEXT NOT NULL); CREATE TABLE IF NOT EXISTS research_notes(id INTEGER PRIMARY KEY,phase TEXT,title TEXT,body TEXT,provenance TEXT,created_at TEXT); CREATE VIRTUAL TABLE IF NOT EXISTS source_fts USING fts5(paper_id UNINDEXED,title,abstract);'''
+def connect():
+ DB.parent.mkdir(parents=True,exist_ok=True);c=sqlite3.connect(DB);c.row_factory=sqlite3.Row;c.executescript(DDL);return c

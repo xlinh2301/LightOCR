@@ -1,0 +1,2 @@
+# LightOCR
+Research: Phase 1 lightweight vision architectures (2024–2026); Phase 2 general text recognition. About 1M parameters target, larger comparisons allowed. Codex synthesizes; OpenScholar LLM generation/training excluded. Use Semantic Scholar metadata with local ignored SQLite. Verify primary sources; do not store unauthorized full text. Remote path: workdir_Research/source/LightOCR-1M on gmoe via WSL2/Docker.
