@@ -23,7 +23,7 @@ This directory contains the first bounded architecture screen and a restartable 
 ## Intended remote flow
 
 1. Use a clean isolated checkout/worktree of this committed branch. Do not alter the current remote untracked checkout.
-2. Run model/unit tests inside `MLR_LinhNX` and complete the pipeline/tiny-set diagnostic. Inspect the data/split/active-process audits before accepting the gate.
+2. Local Windows sanity tests currently pass 12/12; repeat model/unit tests inside `MLR_LinhNX` and complete the pipeline/tiny-set diagnostic. Inspect the data/split/active-process audits before accepting the gate.
 3. Write `research_loop/sanity_results.json` with status `passed` only when all predeclared gates have actual evidence.
 4. Initialize the remote output root using `controller.py init --campaign campaign.json --repo-path <isolated-checkout> --workdir /media/gmo/linhnx/workspace/workdir_Research --max-runs 30`.
 5. Run `controller.py run --state <output-root>/research_loop/search_state.json` from the training environment. Keep the controller under a durable process manager on gmoe. It will sequence the seven runs and stop on the first failure or after the queue ends.
