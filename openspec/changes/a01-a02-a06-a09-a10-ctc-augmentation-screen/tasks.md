@@ -1,0 +1,10 @@
+# Tasks
+
+- [ ] Inspect remote instructions, Git state, active jobs and GPU before transfer or launch.
+- [ ] Implement train-only A01/A02/A06/A09/A10 transforms on the unchanged B02 model; syntax and shape-check.
+- [ ] Transfer runner to gmoe and verify SHA256.
+- [ ] Run A01, A02, A06, A09 and A10 sequentially on seed 42, preserving failures.
+- [ ] Reconcile every run's manifest, history, predictions, metrics, checkpoint and data audit.
+- [ ] Update tracker and back up each run's artifacts/checkpoint to Drive before starting the next run.
+- [ ] Commit/push source and OpenSpec; upload a versioned source archive.
+- [ ] Record whether L03/L04 eligibility criteria are met; defer them if CTC has not converged stably.
