@@ -1,0 +1,11 @@
+{
+  "status": "not_run",
+  "completed_at": null,
+  "remote_repo_revision": null,
+  "active_process_audit": null,
+  "train_dev_data_manifest_sha256": null,
+  "ctc_operator_tests": {"status": "not_run", "passed": null, "failed": null},
+  "model_shape_and_gradient_tests": {"status": "not_run", "passed": null, "failed": null},
+  "tiny_set_memorization": {"status": "not_run", "n": null, "optimizer_steps": null, "train_em": null, "artifact_path": null},
+  "decision": "Do not mark passed until remote data/process audit, CTC correctness, shape/gradient checks, and the predeclared tiny-set test are all reconciled."
+}

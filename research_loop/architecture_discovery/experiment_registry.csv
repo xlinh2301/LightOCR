@@ -1,0 +1,8 @@
+run_id,architecture_id,hypothesis,seed,status,config_sha256,source_revision,train_n,dev_n,dev_em,dev_cer,params,flops,latency_ms,peak_vram_mb,artifact_path,decision
+loopocr-cnn-control-s42,loopocr_v1_cnn,H1/H4,42,planned,,,,,,,,,,,
+loopocr-shared-k1-s42,loopocr_v1_shared_transformer,H2,42,planned,,,,,,,,,,,
+loopocr-shared-k2-s42,loopocr_v1_shared_transformer,H3,42,planned,,,,,,,,,,,
+loopocr-shared-k4-s42,loopocr_v1_shared_transformer,H3,42,planned,,,,,,,,,,,
+loopocr-shared-k6-s42,loopocr_v1_shared_transformer,H3,42,planned,,,,,,,,,,,
+loopocr-untied-depth4-s42,loopocr_v1_untied_depth4,H3/H4,42,planned,,,,,,,,,,,
+loopocr-cnn-wide-control-s42,loopocr_v1_cnn_wide,H4,42,planned,,,,,,,,,,,

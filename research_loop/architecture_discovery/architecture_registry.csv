@@ -1,0 +1,5 @@
+architecture_id,family,mechanism,status,params,notes
+loopocr_v1_cnn,CNN-only control,Depthwise-separable CNN with horizontal width preserved,planned,,diagnostic floor
+loopocr_v1_shared_transformer,LoopOCR-v1,One shared Transformer block recurrently applied K times,implemented_pending_tests,,K in 1/2/4/6; optional iteration code
+loopocr_v1_untied_depth4,Untied control,Four independent Transformer blocks,planned,,compute/depth control
+loopocr_v1_cnn_wide,Capacity control,Wider CNN-only stem,planned,,parameter/capacity comparator

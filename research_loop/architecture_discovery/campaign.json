@@ -1,0 +1,28 @@
+{
+  "campaign_id": "loopocr_v1_screen_20261019",
+  "status": "planned_pending_remote_audit",
+  "output_root": "/media/gmo/linhnx/workspace/workdir_Research/results/lightocr_loopocr_v1_screen_20261019",
+  "screening": {
+    "seed": 42,
+    "epochs_max": 50,
+    "early_stopping_patience": 10,
+    "batch_size": 32,
+    "workers": 4,
+    "optimizer": "AdamW",
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "checkpoint_metric": "lowest model-dev CER; exact match tie-break",
+    "max_gpu_concurrent_runs": 1,
+    "selection_split": "Pilot 007 model_dev; exploratory only",
+    "test_cross_data_access": false
+  },
+  "runs": [
+    {"run_id":"loopocr-cnn-control-s42","hypothesis":"A spatial CNN with preserved horizontal width provides a stable floor for recurrence comparisons.","model":{"width":128,"heads":4,"ff_width":256,"loops":0,"mixer":"none","max_steps":64,"iteration_conditioning":false},"epochs":50,"patience":10,"seed":42,"batch_size":32},
+    {"run_id":"loopocr-shared-k1-s42","hypothesis":"One self-attention refinement block improves sequence interactions over CNN-only features.","model":{"width":128,"heads":4,"ff_width":256,"loops":1,"mixer":"shared","max_steps":64,"iteration_conditioning":true},"epochs":50,"patience":10,"seed":42,"batch_size":32},
+    {"run_id":"loopocr-shared-k2-s42","hypothesis":"Reusing a shared block twice improves ambiguous digit representations without increasing block parameters.","model":{"width":128,"heads":4,"ff_width":256,"loops":2,"mixer":"shared","max_steps":64,"iteration_conditioning":true},"epochs":50,"patience":10,"seed":42,"batch_size":32},
+    {"run_id":"loopocr-shared-k4-s42","hypothesis":"Four recurrent refinements improve OCR accuracy relative to K=1 at measured additional compute.","model":{"width":128,"heads":4,"ff_width":256,"loops":4,"mixer":"shared","max_steps":64,"iteration_conditioning":true},"epochs":50,"patience":10,"seed":42,"batch_size":32},
+    {"run_id":"loopocr-shared-k6-s42","hypothesis":"Six recurrent refinements reveal whether additional iterative compute yields useful corrections or amplifies errors.","model":{"width":128,"heads":4,"ff_width":256,"loops":6,"mixer":"shared","max_steps":64,"iteration_conditioning":true},"epochs":50,"patience":10,"seed":42,"batch_size":32},
+    {"run_id":"loopocr-untied-depth4-s42","hypothesis":"The same four executed Transformer blocks without parameter sharing separate recurrence effects from depth effects.","model":{"width":128,"heads":4,"ff_width":256,"loops":4,"mixer":"untied","max_steps":64,"iteration_conditioning":false},"epochs":50,"patience":10,"seed":42,"batch_size":32},
+    {"run_id":"loopocr-cnn-wide-control-s42","hypothesis":"A wider CNN-only model tests whether added capacity alone explains any recurrent-model gain.","model":{"width":192,"heads":4,"ff_width":384,"loops":0,"mixer":"none","max_steps":64,"iteration_conditioning":false},"epochs":50,"patience":10,"seed":42,"batch_size":32}
+  ]
+}
