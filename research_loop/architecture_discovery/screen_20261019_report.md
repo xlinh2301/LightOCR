@@ -112,3 +112,15 @@ Relative to strong augmentation at 48x320 (167/244 exact, CER 9.5406%), width384
 ### Next candidate
 
 Run loopocr-local-split2201-48x320-strongaug-s1337 with the best current recipe, changing only seed 42 to 1337. This estimates seed sensitivity and continues the user-defined per-seed target check; it remains exploratory and is not confirmatory because the development IDs are exposed. Freeze 48x320, shared K4 width320/FF640, strong train-only augmentation, 50-epoch budget, batch32, optimizer/schedule, split and checkpoint-selection rule. Test/cross-data remain closed. The >90% exact-match target has not been met.
+
+## Run 14: seed 1337 replication and next gate (2026-10-19)
+
+Run 14/30 (`loopocr-local-split2201-48x320-strongaug-s1337`) completed at best epoch 47. Independent reconstruction verified all 244 IDs and runtime labels: 163/244 exact (66.8033%), CER 112/1,132=9.89399%, 57 substitutions, 41 deletions, 14 insertions, and 34 wrong same-length strings. The model has 1,003,148 parameters; runtime 1,004.16 s; peak VRAM 419,947,008 bytes. The seed42 strongaug 48×320 result was 167/244 exact and CER 9.5406%; this seed is four strings lower and CER is 0.35 pp higher. These results are exploratory on previously exposed development IDs.
+
+The run bundle and checkpoint are synced to Drive: [bundle](https://drive.google.com/file/d/18y6S6OPJKTTo-ZvFt_27JB1a2xKCXKtx/view), [checkpoint](https://drive.google.com/file/d/1727SDlPkRk2iiHnhnaVNT_uj2jpcnx7Z/view). Config SHA256 `d0177cbfff0888c31950d5830bea4e6a13df1d390ba67244b2d1ced315b39d6a`; checkpoint SHA256 `8a66486946e42b007426546777a1829dd59d73a895d415a8bc368631f97f00de`; predictions SHA256 `a8d1caba2629206914728c1d8c5e42a3ff627b5627c8dde477cfbc0bbb060692`; bundle SHA256 `5e86179844f936201b6d298d48beb3f5dc829999f5d1399a0a33da91a7b8c359`.
+
+Provenance audit: the run manifest omitted `source_commit`; its `train.py` content hash resolves to Git commit `4dc2fb5`, and `loopocr.py` matches. The candidate config's `label_source_sha256` (`fc5995…`) differs from the runtime loader's label-file SHA256 (`17a83f…`). The independent verifier used the runtime loader's file and matched all saved prediction truths. Correct this metadata for subsequent candidates and preserve the discrepancy in the record.
+
+### Next candidate and limitations
+
+Run the same predeclared best recipe once with frozen seed 2026, changing only the seed, after recording the runtime label-file SHA256 in the candidate metadata. This completes the requested three-seed exploratory check on the exposed IDs; it cannot serve as independent confirmation or support a >90% generalization claim. Current results for seeds 42 and 1337 are 167/244 (68.44%) and 163/244 (66.80%), respectively, far below the ≥220/244 threshold. Keep test/cross-data closed. After seed2026, reassess the architecture/training bottleneck rather than continuing seed repeats without a new hypothesis.
