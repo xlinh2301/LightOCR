@@ -22,6 +22,7 @@ The existing exploratory OCR runs have not established stable CTC convergence. A
 ## Success measures
 
 - CTC encoding/length/decoding audit and model-shape tests pass.
+- Both fixed splits pass image/label/CTC-feasibility audits, and a deterministic train-only tiny subset demonstrates actual learning through the production crop loader before screening.
 - LoopOCR variants produce valid `[B,T,11]` log probabilities and satisfy CTC length constraints.
 - Controller safely resumes/reconciles runs, rejects duplicate IDs/config hashes, and retains failed jobs.
 - Initial comparison artifacts contain measured parameters, runtime, memory, predictions, EM, CER, and a written decision.

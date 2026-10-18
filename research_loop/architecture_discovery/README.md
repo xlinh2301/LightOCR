@@ -16,14 +16,15 @@ This directory contains the first bounded architecture screen and a restartable 
 - `train.py`: single-config trainer; writes a manifest, all-row CTC audit, training history, best checkpoint, dev predictions and run summary.
 - `verify_predictions.py`: reconstructs EM/CER and error cases from saved predictions and cross-checks expected development IDs and labels.
 - `controller.py`: initializes a hashed campaign, launches one queued run, records events atomically, reconciles after restart, and refuses launches until `sanity_results.json` is marked passed.
+- `sanity.py`: audits both fixed splits for CTC feasibility and performs a deterministic tiny-set memorization run through the actual crop loader; writes `sanity_results.json` only with explicit evidence and a pass/fail decision.
 - `campaign.json`: predeclared seven-run first-family comparison.
-- `test_loopocr.py`, `test_controller.py`: component and recovery tests.
+- `test_loopocr.py`, `test_controller.py`, `test_sanity.py`: component, recovery, and feasibility tests.
 - `architecture_hypotheses.md`, `architecture_registry.csv`, `experiment_registry.csv`, `literature_landscape.md`: rationale and evidence trail.
 
 ## Intended remote flow
 
 1. Use a clean isolated checkout/worktree of this committed branch. Do not alter the current remote untracked checkout.
-2. Local Windows sanity tests currently pass 12/12; repeat model/unit tests inside `MLR_LinhNX` and complete the pipeline/tiny-set diagnostic. Inspect the data/split/active-process audits before accepting the gate.
+2. Local syntax/model/controller/metric/feasibility tests pass 14/14; the deployed revision's model/controller suite passed 12/12 inside `MLR_LinhNX`. Run the updated `sanity.py` there to audit both fixed splits and demonstrate tiny-set learning before accepting the gate.
 3. Write `research_loop/sanity_results.json` with status `passed` only when all predeclared gates have actual evidence.
 4. Initialize the remote output root using `controller.py init --campaign campaign.json --repo-path <isolated-checkout> --workdir /media/gmo/linhnx/workspace/workdir_Research --max-runs 30`.
 5. Run `controller.py run --state <output-root>/research_loop/search_state.json` from the training environment. Keep the controller under a durable process manager on gmoe. It will sequence the seven runs and stop on the first failure or after the queue ends.
