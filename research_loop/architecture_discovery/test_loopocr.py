@@ -16,7 +16,7 @@ class LoopOCRTests(unittest.TestCase):
             self.assertTrue(torch.equal(ctc_input_lengths(torch.tensor([width])), torch.tensor([(width + 3) // 4])))
 
     def test_ctc_repeat_feasibility(self):
-        self.assertEqual(ctc_required_steps("1001"), 6)
+        self.assertEqual(ctc_required_steps("1001"), 5)
         self.assertEqual(ctc_required_steps("1234"), 4)
         self.assertEqual(ctc_required_steps(""), 0)
 
