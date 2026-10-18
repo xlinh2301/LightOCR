@@ -70,3 +70,11 @@ The run used 1,003,148 parameters, runtime 884.849 s, peak VRAM 419,947,008 byte
 ## Next one-factor screen
 
 Increase input height from 48 to 64 pixels while holding width320, shared K=4/width320/FF640, seed42, strong augmentation, split, optimizer, batch size, 50-epoch maximum, and patience fixed. The hypothesis is that retaining more vertical image detail reduces substitutions/deletions without changing the model's parameter count. Use this only as an exploratory model-dev screen; do not freeze a recipe or access test/cross-data from this exposed development set.
+
+## Input-height ablation and next screen
+
+The controlled 64×320 strong-augmentation run completed 37 epochs and selected epoch27 by lowest model-dev CER. Independent reconstruction verified all 244 IDs/labels: exact match 167/244 (68.4426%); CER 110/1,132=9.7173%; 52 substitutions, 53 deletions, 5 insertions and 29 wrong same-length strings. It matched the 48×320 strong-augmentation run's 167 exact strings but had two more edit operations and CER higher by 0.18 percentage points. No benefit from increasing height was observed on this split/seed. Runtime 788.673s; peak VRAM 470,999,552 bytes; parameters 1,003,148. The model-dev split is exposed and this comparison remains exploratory; test/cross-data were not read. The ≥90% target remains unmet.
+
+Resolved config SHA-256 `ea15c162f6c909bae3767ae696d923dfb83eb1334b0875180bb7be26817a93bf`; checkpoint SHA-256 `381578da58a043d7d0fbaffd7977e00f645420b806524fd426441cad46e5e489`; predictions SHA-256 `ee4290764cc4e83df1c4d1e18c4c63f4d797a78723d1fae263a13b889c3c1381`. Run bundle: https://drive.google.com/file/d/11jtWOtWYKrCYpkyYzaMijKRbuRtX7sq5/view; report: https://drive.google.com/file/d/1mLnlniTZqPRnj_axMaxybDx0JZW6xDMy/view; checkpoint: https://drive.google.com/file/d/1h_WuOg_UeTYI1vL_Y6JSuMdODFho6Z6X/view.
+
+Next controlled input-resolution screen: 48×384, strong augmentation, same seed42/split/model width320/FF640/optimizer/batch/training budget; positional capacity set to 96 to match the convolutional sequence length. Hypothesis: more horizontal detail may better preserve narrow digit strokes. Evaluate only on the exploratory model-dev split and keep test/cross-data closed.

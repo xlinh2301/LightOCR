@@ -16,3 +16,10 @@ L03/L04 are deferred. A10 results across seeds 42/1337/2026 have mean CER 53.80%
 - Controller: 11 of 30 remote run entries completed; the local fallback is an additional completed run outside controller state. No active GPU job at this update.
 - Next screen: change only input height 48→64 while holding width320, shared K4 width320/FF640, strong augmentation, seed42, split, optimizer and budget fixed. Hypothesis: additional vertical detail may reduce character substitutions/deletions. Preserve all failures and do not use test/cross-data.
 - Strong-augmentation artifacts: run bundle https://drive.google.com/file/d/1tUn6hXZdb_LzmasPVjtKhSfPrpN6OYD1/view; report https://drive.google.com/file/d/1GsTpKVf0UejxxXnzzxsQL0B3EgDhiVOg/view; checkpoint https://drive.google.com/file/d/1S79U10HUqE6VDRjcj1r_05G5YWfIpgns/view.
+
+## Architecture discovery loop update (2026-10-19)
+
+- Completed controller run 12/30: 64×320 strong augmentation, seed42, 2,201/244 exploratory split. Independently reconstructed 167/244 exact (68.4426%), CER 9.7173%, best epoch27. It matches the 48×320 run's exact count but has two more edits and CER +0.18 pp; no observed benefit from added height.
+- Target ≥220/244 remains unmet. The exposed model-dev set supports exploratory tuning only; no test/cross-data access.
+- Next one-factor screen: input 48×384, with `max_steps=96` to match T=96, and all other settings held fixed against the strongaug 48×320 run.
+- Run bundle https://drive.google.com/file/d/11jtWOtWYKrCYpkyYzaMijKRbuRtX7sq5/view; report https://drive.google.com/file/d/1mLnlniTZqPRnj_axMaxybDx0JZW6xDMy/view; checkpoint https://drive.google.com/file/d/1h_WuOg_UeTYI1vL_Y6JSuMdODFho6Z6X/view.
