@@ -1,7 +1,7 @@
 # Tasks
 
-- [ ] Compile-check and transfer this new runner without replacing prior remote files.
-- [ ] Preserve the failed N02 screen01 attempt and record its channel-layout error.
-- [ ] Run corrected N02 in a fresh output root, then N04, then N07 on seed 42, one at a time.
-- [ ] Reconcile prediction counts, metric reconstruction, checkpoint hashes and data audits.
-- [ ] Update tracker rows and back up each run's artifacts/checkpoint to Drive.
+- [x] Compile-check and transfer this new runner without replacing prior remote files.
+- [x] Preserve the failed N02 screen01 attempt and record its channel-layout error.
+- [x] Run corrected N02 retry01, preserve failed N04 screen01, then corrected N04 retry02 and N07 sequentially on seed 42.
+- [x] Reconcile prediction counts, metric outputs, checkpoint hashes and data audits.
+- [x] Update tracker rows and back up each run's artifacts/checkpoint to Drive.
