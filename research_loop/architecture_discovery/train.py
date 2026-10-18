@@ -70,9 +70,13 @@ def augment_crop(image: Image.Image, cfg: dict) -> Image.Image:
 
 
 class Crops(Dataset):
-    def __init__(self, ids, labels, image_paths, augmentation=None):
+    def __init__(self, ids, labels, image_paths, augmentation=None,
+                 image_height: int = 32, image_width: int = 192):
         self.ids, self.labels, self.image_paths = ids, labels, image_paths
         self.augmentation = augmentation or {}
+        if image_height < 1 or image_width < 1:
+            raise ValueError("image_height and image_width must be positive")
+        self.image_height, self.image_width = image_height, image_width
 
     def __len__(self):
         return len(self.ids)
@@ -83,9 +87,9 @@ class Crops(Dataset):
         with Image.open(self.image_paths[sample_id]) as image:
             image = augment_crop(image.convert("RGB"), self.augmentation)
             width, height = image.size
-            out_width = max(1, min(192, round(width * 32 / height)))
-            pixels = np.asarray(image.resize((out_width, 32), Image.Resampling.BILINEAR), dtype=np.float32) / 255
-        padded = np.empty((32, 192, 3), dtype=np.float32)
+            out_width = max(1, min(self.image_width, round(width * self.image_height / height)))
+            pixels = np.asarray(image.resize((out_width, self.image_height), Image.Resampling.BILINEAR), dtype=np.float32) / 255
+        padded = np.empty((self.image_height, self.image_width, 3), dtype=np.float32)
         padded[:] = MEAN
         padded[:, :out_width] = pixels
         tensor = torch.from_numpy(((padded - MEAN) / STD).transpose(2, 0, 1).copy())
@@ -196,14 +200,18 @@ def run(config_path: Path, run_dir: Path):
         raise RuntimeError("CUDA unavailable; this run requires MLR_LinhNX")
     generator = torch.Generator().manual_seed(seed)
     batch = int(cfg.get("batch_size", 32)); workers = int(cfg.get("workers", 4))
-    train_loader = DataLoader(Crops(train_ids, labels, image_paths, cfg.get("augmentation")), batch_size=batch, shuffle=True,
+    image_height = int(cfg.get("image_height", 32)); image_width = int(cfg.get("image_width", 192))
+    required_position_steps = (image_width + 3) // 4
+    if int(cfg["model"].get("max_steps", 64)) < required_position_steps:
+        raise ValueError(f"model.max_steps={cfg['model'].get('max_steps')} is below input sequence length {required_position_steps}")
+    train_loader = DataLoader(Crops(train_ids, labels, image_paths, cfg.get("augmentation"), image_height, image_width), batch_size=batch, shuffle=True,
         generator=generator, num_workers=workers, pin_memory=True, collate_fn=collate)
-    dev_loader = DataLoader(Crops(dev_ids, labels, image_paths), batch_size=batch, shuffle=False,
+    dev_loader = DataLoader(Crops(dev_ids, labels, image_paths, image_height=image_height, image_width=image_width), batch_size=batch, shuffle=False,
         num_workers=workers, pin_memory=True, collate_fn=collate)
     model = LoopOCR(**cfg["model"]).cuda()
     params = parameter_count(model)
     invalid = []
-    for _, _, _, ids, truths, widths in DataLoader(Crops(train_ids, labels, image_paths),
+    for _, _, _, ids, truths, widths in DataLoader(Crops(train_ids, labels, image_paths, image_height=image_height, image_width=image_width),
             batch_size=64, shuffle=False, num_workers=0, collate_fn=collate):
         for sid, truth, width in zip(ids, truths, widths.tolist()):
             frames = int(ctc_input_lengths(torch.tensor([width]))[0])

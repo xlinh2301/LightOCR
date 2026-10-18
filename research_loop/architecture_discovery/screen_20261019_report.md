@@ -1,7 +1,7 @@
 # LoopOCR-v1 first architecture screen
 
 **Date:** 2026-10-19  
-**Source:** initial seven-run screen at `21a442c`; 1M capacity follow-up at `75e2f7d`
+**Source:** initial seven-run screen at `21a442c`; 1M capacity follow-up at `75e2f7d`; augmentation implementation and component-test helper at `c775c50`
 **Execution:** gmoe, `MLR_LinhNX`, Quadro RTX 5000 16 GB, Python 3.12.3, PyTorch 2.11.0+cu128  
 **Purpose:** compare a compact CNN floor, shared recurrent Transformer refinements, an untied depth control, and a wider CNN control.
 
@@ -37,15 +37,27 @@ After the initial seven-run screen, the best-supported topology (shared K=4) was
 
 Independent reconstruction found 442 edits over 1,132 reference characters (253 substitutions, 141 deletions, 48 insertions), matching the saved metrics. The checkpoint SHA-256 is `3a2f52a3e6a1227e34fa77d87768b04ce9ae842f66477581e216f2503e73931a`; config SHA-256 is `60e13e58019a7d76326c4af18d1abc75ab63e0b7b322d71d39497c9d6f12a4ba`. Training loss fell below 0.003 by epoch 41 while model-dev CER worsened to 40.19%, consistent with strong overfitting. Test/cross-data remained untouched.
 
+## Controlled augmentation follow-up
+
+To address the train/dev overfit without changing model capacity, the same shared K=4 width-320 model was retrained with the same seed, split, optimizer, batch size, and epoch budget. Mild augmentation was applied only to training images: rotation ±2°, brightness/contrast ±12%, blur with probability 0.05 and radius ≤0.6, and normalized tensor noise σ=0.02. Model-development inputs remained unaugmented.
+
+| Run | Parameters | Best epoch | CER (%) | Exact match (%) | Exact strings | Runtime (s) | Peak VRAM (MiB) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Shared K=4, width 320 / FF 640, mild train-only augmentation | 998,028 | 49 | 23.0565 | 40.1639 | 98/244 | 153.802 | 213.63 |
+
+Independent reconstruction against the frozen 244 model-development IDs and labels exactly matched the saved summary: 261 edits across 1,132 reference characters (155 substitutions, 78 deletions, 28 insertions), with 55 wrong same-length outputs. Compared with the same-seed unaugmented capacity run, exact strings increased from 45 to 98 (+53, +21.72 percentage points) and CER fell from 39.0459% to 23.0565% (−15.99 points). The augmented run's final-epoch training loss was 0.02972 rather than below 0.003 in the unaugmented run. Best model-dev CER was at epoch 49; epoch 50 was slightly worse (23.2332%).
+
+The improvement is substantial for this exploratory run, but 98/244 remains far below the ≥220/244 needed for 90% exact match. It is one seed on the previously exposed Pilot 007 model-development split and is not independent validation. Test and cross-data were not accessed. The run manifest's source commit field was blank; the recorded `train.py` and `loopocr.py` SHA-256 values match commit `c775c50`. Config SHA-256: `c79b45b8f0175b6c36b24840a8d1cc6c5dbf7f5deae569f4b0ee01fba4f3c25f`. Checkpoint SHA-256: `42639e92c0a090b3fbc1e6d6180c1c1b7fcef21d66a6bd9ae798f3c547b17bdb`. Predictions SHA-256: `5db15db0e178d66b3a37ce263b322c684fee202630d36f4fc089e934b39ff4a8`. Independent metric file SHA-256: `9bea3bc399f04956e8d720400f3ebce65a0d3f941f7336b368ee4df859b808ad`.
+
 ## Interpretation
 
-Shared K=4 is the best of the first seven configurations, but 18/244 exact strings is far below the >90% target of at least 220/244. K=6 is slightly worse than K=4. Untied depth-4 has over three times the parameters of shared K=4 and is also worse. The CNN controls fail to provide a useful floor. Scaling shared K=4 to 998,028 parameters raises EM to 45/244, but train/dev behavior indicates overfitting and the target remains unmet. The tiny-set check and clean data audit make a basic CTC feasibility or total pipeline failure less likely, but do not rule out preprocessing, optimization, label noise, or representation problems.
+Shared K=4 is the best of the first seven configurations, but 18/244 exact strings is far below the >90% target of at least 220/244. K=6 is slightly worse than K=4. Untied depth-4 has over three times the parameters of shared K=4 and is also worse. The CNN controls fail to provide a useful floor. Scaling shared K=4 to 998,028 parameters raises EM to 45/244; mild train-only augmentation improves this to 98/244 and lowers CER by 15.99 points. The target remains unmet. The tiny-set check and clean data audit make a basic CTC feasibility or total pipeline failure less likely, but do not rule out preprocessing, label noise, or representation problems. Most remaining edit distance is substitutions, suggesting the next experiment should test whether higher input resolution improves visual evidence while holding the model, seed, split, and augmentation fixed.
 
 This is a one-seed screen on an already exposed model-development split. It cannot establish a stable architecture ranking, generalization, or an OCR claim. Latency and FLOPs were not measured. No test or cross-data result was used.
 
 ## Next experiment
 
-Run `loopocr-shared-k4-width320-aug-s42` with the same 998,028-parameter shared K=4 architecture, split, optimizer, batch, seed, and epoch budget. Add mild train-only rotation, brightness/contrast variation, occasional blur, and small normalized tensor noise. This directly tests the observed overfit without changing the architecture. The candidate config is `next_candidate_1m_aug.json`. Keep the existing controller and single-GPU sequential execution; stop for review on any failed/interrupted run.
+Run a controlled 48×320 input-resolution follow-up on the same shared K=4 width-320 / FF-640 architecture, seed42, split, optimizer, batch size, epoch budget, and mild train-only augmentation. Only input height/width and matching positional capacity should change; parameter count should remain near 1M. The augmentation run improved EM to 98/244 and left 261 character edits, 155 of them substitutions; increasing visual resolution tests whether additional character detail addresses those errors. Keep model-development preprocessing unaugmented. Use the existing controller and single-GPU sequential execution; verify state before queueing. Preserve failures and continue excluding test/cross-data. If resolution helps materially, confirm it on seeds 1337 and 2026 before selecting it.
 
 ## Artifact references
 
@@ -59,3 +71,4 @@ Run `loopocr-shared-k4-width320-aug-s42` with the same 998,028-parameter shared 
 - CNN-wide control: [Drive archive](https://drive.google.com/file/d/1sYiMKKwNsWuDn9lmmHPv3EumXGPBsVQd/view)
 - Source snapshot: [Drive archive](https://drive.google.com/file/d/1PCWhwIMlMd8xvk9zWCBQUEgFZe0nSrq8/view)
 - 998k capacity follow-up: [Drive archive](https://drive.google.com/file/d/1pn4xAu6v2-jiQQbknOQ_0MBi-i4Ns48n/view)
+- 998k mild-augmentation follow-up and independent reconstruction: [Drive archive](https://drive.google.com/file/d/1SbBb4IV5vgQw1Ng6AM6NQz0xXgCPoYay/view)

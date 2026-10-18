@@ -15,6 +15,13 @@ class LoopOCRTests(unittest.TestCase):
             self.assertTrue(torch.allclose(output.exp().sum(-1), torch.ones_like(output[..., 0]), atol=1e-5))
             self.assertTrue(torch.equal(ctc_input_lengths(torch.tensor([width])), torch.tensor([(width + 3) // 4])))
 
+    def test_high_resolution_input_sequence_capacity(self):
+        model = LoopOCR(width=32, heads=4, ff_width=64, loops=2,
+                        max_steps=80, iteration_conditioning=True)
+        output = model(torch.randn(1, 3, 48, 320))
+        self.assertEqual(output.shape, (1, 80, 11))
+        self.assertEqual(ctc_input_lengths(torch.tensor([320])).item(), 80)
+
     def test_ctc_repeat_feasibility(self):
         self.assertEqual(ctc_required_steps("1001"), 5)
         self.assertEqual(ctc_required_steps("1234"), 4)

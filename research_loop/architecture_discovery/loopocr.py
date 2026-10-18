@@ -44,7 +44,7 @@ class SharedTransformerRefiner(nn.Module):
 
 
 class LoopOCR(nn.Module):
-    """Input `[B,3,32,192]`; output log-probs `[B,T,11]`, blank index 0."""
+    """Input `[B,3,H,W]`; output log-probs `[B,T,11]`, blank index 0."""
     def __init__(self, *, width: int = 128, heads: int = 4, ff_width: int = 256,
                  loops: int = 1, mixer: str = "shared", max_steps: int = 64,
                  iteration_conditioning: bool = True, dropout: float = 0.0,
