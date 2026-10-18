@@ -102,8 +102,8 @@ class Network(nn.Module):
    edge=torch.sqrt(gx.square()+gy.square()+1e-6); edge_feat=self.edge_cnn(edge)
    if edge_feat.shape[2:]!=feat.shape[2:]: raise RuntimeError('Sobel feature branch does not align with RGB feature map')
    z=torch.cat([feat,edge_feat],dim=1).mean(2)
-   z=torch.nn.functional.silu(self.temporal_projection(z))
-  else: z=feat.mean(2)
+   z=torch.nn.functional.silu(self.temporal_projection(z)).transpose(1,2)
+  else: z=feat.mean(2).transpose(1,2)
   z=z.contiguous()
   if self.exp=='N02': z=torch.nn.functional.silu(self.temporal(z.transpose(1,2))).transpose(1,2)
   elif self.exp=='N04':
