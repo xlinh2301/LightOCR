@@ -1,0 +1,5 @@
+# Design: N02, N04 and N07 neck screen
+
+The common visual backbone is the B01 depthwise-separable CNN. N02 scores each spatial row with a learned 1×1 convolution and uses softmax over height to form a weighted feature sequence, followed by the reference kernel-3 Conv1D. N04 uses parallel full Conv1D branches with kernel sizes 3 and 5, sums their outputs, applies SiLU, and predicts with the shared CTC head. N07 computes fixed Sobel x/y gradients from reconstructed RGB luminance, takes gradient magnitude, processes it through a small depthwise-separable branch with the same spatial stride as the RGB backbone, concatenates the 32 edge channels with the 128 RGB feature channels, then projects to 128 temporal channels and applies a kernel-3 Conv1D.
+
+The N07 edge branch and late feature concatenation are a specific implementation approximation of the matrix's Sobel-feature-concatenation hypothesis; it is not claimed as a canonical published architecture. Keep seed 42, batch size 32, 50 maximum epochs, patience 10, RGB 32×192, the frozen Pilot 007 split, and model-dev CER selection with exact-match tie-break.
