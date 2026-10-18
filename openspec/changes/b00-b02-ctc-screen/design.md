@@ -4,4 +4,6 @@ Use one runner with an explicit experiment selector so the three model variants 
 
 The screen uses seed 42, 50 maximum epochs, early stopping after 10 non-improving development epochs, RGB 32×192 aspect-preserving resize/right padding, batch size 32, and AdamW. Select the checkpoint using development CER with exact-match as tie-break. Train and development IDs come from the existing Pilot 007 `base_fit_fold_*.jsonl` and `model_dev.jsonl`; this is an exploratory, previously exposed split. Never read test or cross-data labels. Record parameter count, exact match, CER, same-length error rate, and edit operation counts. Runs are sequential, not concurrent.
 
+The Pilot 007 experimental split is independent of the source archive's physical `crops/train` and `crops/valid` directories. Resolve each frozen train/dev ID by basename across only those two folders; require exactly one matching image per ID and save the mapping and counts in `data_file_audit.json` and the run manifest. Missing or duplicate files stop before training. Do not move/copy files or change the frozen experimental split to make the lookup pass. Never inspect `crops/test` or cross-data folders.
+
 Source is being added to the local LightOCR checkout while gmoe remains a separate uncommitted working tree. Reconcile those Git states before any source push; never overwrite remote untracked files.

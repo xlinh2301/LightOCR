@@ -52,11 +52,11 @@ def metrics(rows):
  return {'n':n,'exact':exact,'exact_match':exact/max(1,n),'cer':edits/max(1,chars),'edit_chars':edits,'reference_chars':chars,'same_length_error_rate':wrong_same/max(1,n),'substitutions':sub,'deletions':dele,'insertions':ins}
 
 class Crops(Dataset):
- def __init__(self,names,labels,split): self.names=names; self.labels=labels; self.split=split
+ def __init__(self,names,labels,image_paths): self.names=names; self.labels=labels; self.image_paths=image_paths
  def __len__(self): return len(self.names)
  def __getitem__(self,i):
   name=self.names[i]; text=self.labels[name]
-  with Image.open(DATA/self.split/name) as im:
+  with Image.open(self.image_paths[name]) as im:
    im=im.convert('RGB'); w,h=im.size; nw=max(1,min(192,round(w*32/h)))
    a=np.asarray(im.resize((nw,32),Image.Resampling.BILINEAR),dtype=np.float32)/255
   x=np.empty((32,192,3),np.float32); x[:]=MEAN; x[:,:nw]=a
@@ -108,7 +108,19 @@ def main():
  if (len(tr),len(dv))!=(1467,244) or set(tr)&set(dv): raise RuntimeError('frozen split audit failed')
  if any(i not in labels for i in tr+dv): raise RuntimeError('missing labels on frozen train/dev IDs')
  if any(not labels[i] or any(c not in CHARS for c in labels[i]) for i in tr+dv): raise RuntimeError('unexpected/empty target string')
- train_ds=Crops(tr,labels,'train'); dev_ds=Crops(dv,labels,'valid')
+ # Pilot 007's experimental split is independent of the source archive's physical train/valid folders.
+ # Resolve each frozen ID by basename across only those two source folders; never read test/cross-data.
+ image_paths={}; source_counts={'train':0,'valid':0}; missing=[]; ambiguous=[]
+ for name in sorted(set(tr+dv)):
+  matches=[(split,DATA/split/name) for split in ('train','valid') if (DATA/split/name).is_file()]
+  if len(matches)==0: missing.append(name)
+  elif len(matches)>1: ambiguous.append({'sample_id':name,'source_paths':[str(p.relative_to(WD/'data')) for _,p in matches]})
+  else:
+   split,p=matches[0]; image_paths[name]=p; source_counts[split]+=1
+ data_audit={'status':'passed' if not missing and not ambiguous else 'failed','experimental_train_n':len(tr),'experimental_dev_n':len(dv),'physical_source_counts':source_counts,'missing_ids':missing,'ambiguous_ids':ambiguous,'lookup_folders':['data/Indomain_curated/crops/train','data/Indomain_curated/crops/valid'],'test_and_cross_data_read':False}
+ save(out/'data_file_audit.json',data_audit)
+ if missing or ambiguous: raise RuntimeError(f"image resolution failed: missing={len(missing)}, ambiguous={len(ambiguous)}; see data_file_audit.json")
+ train_ds=Crops(tr,labels,image_paths); dev_ds=Crops(dv,labels,image_paths)
  dev_loader=DataLoader(dev_ds,batch_size=a.batch_size,shuffle=False,num_workers=a.workers,pin_memory=True,collate_fn=collate)
  train_loader=DataLoader(train_ds,batch_size=a.batch_size,shuffle=True,num_workers=a.workers,pin_memory=True,collate_fn=collate)
  model=Network(a.experiment).to(device); params=sum(p.numel() for p in model.parameters())
@@ -120,7 +132,9 @@ def main():
    if T<L+repeated: invalid.append({'sample_id':name,'T':T,'required':L+repeated})
  if invalid: save(out/'ctc_invalid_samples.json',invalid); raise RuntimeError(f'{len(invalid)} CTC-infeasible train examples; run stopped without dropping them')
  cfg={'experiment':a.experiment,'name':SPECS[a.experiment]['name'],'status':'running','evidence':'exploratory; previously exposed Pilot 007 train/model-dev split','seed':a.seed,'epochs':a.epochs,'patience':a.patience,'batch_size':a.batch_size,'input':'RGB 32x192; aspect resize; right pad; ImageNet normalization','vocabulary':list(CHARS),'ctc_blank':0,'loss':'CTC','optimizer':'AdamW lr=0.001 weight_decay=0.0001','selection':'lowest dev CER; exact-match tie-break','train_n':len(tr),'dev_n':len(dv),'params':params,'gpu':torch.cuda.get_device_name(0),'torch':torch.__version__,'train_labels_sha256':sha(DATA/'train_label.json'),'pilot007_cache_manifest_sha256':sha(CACHE/'manifest.json'),'source_head':subprocess.run(['git','-C',str(ROOT),'rev-parse','HEAD'],capture_output=True,text=True).stdout.strip(),'source_status':subprocess.run(['git','-C',str(ROOT),'status','--short'],capture_output=True,text=True).stdout.splitlines()}
- save(out/'config.json',cfg); save(out/'manifest.json',{'config':cfg,'train_ids':tr,'dev_ids':dv})
+ cfg['image_resolution']='unique basename in source train/valid folders; experimental train/dev IDs remain the frozen Pilot 007 lists'
+ cfg['physical_image_source_counts']=source_counts
+ save(out/'config.json',cfg); save(out/'manifest.json',{'config':cfg,'train_ids':tr,'dev_ids':dv,'image_source_split':{name:str(p.relative_to(DATA)) for name,p in image_paths.items()}})
  random.seed(a.seed); np.random.seed(a.seed); torch.manual_seed(a.seed); torch.cuda.manual_seed_all(a.seed); gen=torch.Generator().manual_seed(a.seed)
  train_loader=DataLoader(train_ds,batch_size=a.batch_size,shuffle=True,generator=gen,num_workers=a.workers,pin_memory=True,collate_fn=collate)
  opt=torch.optim.AdamW(model.parameters(),lr=1e-3,weight_decay=1e-4); sch=torch.optim.lr_scheduler.CosineAnnealingLR(opt,T_max=a.epochs); lossfn=nn.CTCLoss(blank=0,zero_infinity=False); scaler=torch.cuda.amp.GradScaler()
