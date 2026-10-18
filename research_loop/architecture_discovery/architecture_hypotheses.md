@@ -1,12 +1,12 @@
 # Architecture hypotheses and experiment rationale
 
-Status: first seven-run screen completed on 2026-10-19. The screen does not meet the OCR target. See `screen_20261019_report.md` for per-run metrics, artifacts, and limitations.
+Status: seven-run architecture screen and one capacity follow-up completed on 2026-10-19. Neither meets the OCR target. See `screen_20261019_report.md` for measured results and limitations.
 
 ## Evidence boundary
 
 - The existing Pilot 007 model-development set has been repeatedly exposed. All scores from it are exploratory and must not be described as independent validation.
 - The controller and trainer accessed the fixed train/model-dev IDs only. The test and cross-data sets were not read.
-- The gmoe run manifests have blank `source_commit` fields because Git metadata was unavailable inside `MLR_LinhNX`; `train.py` and `loopocr.py` hashes were checked against commit `21a442c` in the clean host clone.
+- The gmoe run manifests have blank `source_commit` fields because Git metadata was unavailable inside `MLR_LinhNX`; `train.py` and `loopocr.py` hashes were checked against commit `75e2f7d` in the clean host clone.
 - Each screen is seed 42. No screen result establishes reproducibility or stable improvement.
 - The 16-image sanity gate showed that the training path can memorize a tiny subset. It does not demonstrate generalization.
 
@@ -24,14 +24,16 @@ Status: first seven-run screen completed on 2026-10-19. The screen does not meet
 
 K=4 is the best configuration in this one-seed screen, with 18/244 exact strings. This remains far below the target of more than 90% EM (at least 220/244). Increasing recurrence beyond four steps reduced screen performance. The untied depth-4 control used over three times as many parameters as shared K=4 and performed worse. This screen supports testing more representational capacity while keeping the best-supported shared K=4 topology fixed; it does not yet show that capacity alone is the cause.
 
+The shared K=4 model scaled to 998,028 parameters reached 45/244 EM (18.44%) and CER 39.05% at best epoch 31. Its training loss fell below 0.003 while model-dev CER worsened after epoch 31. The capacity increase helped on this exposed development set, but substantial overfitting remains. The next controlled test keeps this model and optimizer fixed while adding mild train-only augmentation.
+
 ## Hypotheses and next test
 
 | ID | Observation | Hypothesis | Next test | Interpretation rule |
 |---|---|---|---|---|
-| H0 | The tiny-set sanity run reaches 15/16 EM and all 1,711 training/model-dev samples pass the CTC feasibility audit. The full model-dev screen remains poor. | The basic CTC/data path works; the current model or training regime has insufficient OCR representation or optimization for this data. | Preserve the current protocol and scale shared K=4 to 998,028 parameters, seed 42. | A clear improvement supports testing capacity within this topology; no improvement redirects work to feature extraction, initialization, optimization and label/image diagnostics. |
+| H0 | The tiny-set sanity run reaches 15/16 EM and all 1,711 training/model-dev samples pass the CTC feasibility audit. Shared K=4 at 998,028 parameters reaches only 45/244 EM and overfits. | The basic CTC/data path can learn; limited data and overfitting now appear to constrain generalization. | Keep the 998,028-parameter K=4 model fixed and add mild train-only augmentation. | Improvement supports augmentation as a useful data regularizer; no improvement redirects work to initialization, preprocessing, labels, and visual feature extraction. |
 | H1 | Shared K=4 outperforms K=1/2/6 in the same single-seed screen. | Four recurrent refinements are a useful starting topology. | Keep K=4 fixed during the next capacity test. | Do not generalize the ranking until confirmation seeds are run. |
 | H2 | Untied depth-4 has 581,452 parameters and EM 2.46%, below shared K=4 at 7.38%. | Parameter sharing and iterative refinement may be more effective per parameter than untied depth. | Preserve as an exploratory comparison; do not spend more budget on untied depth unless later error analysis motivates it. | A one-seed model-dev delta is hypothesis-generating only. |
-| H3 | CNN controls remain below 1% EM. | The present depthwise-separable CNN stem alone is not a sufficient feature extractor under the current scratch training protocol. | If the 1M shared K=4 model fails to improve, test a stronger or pretrained stem and a controlled training/data audit. | Keep the CTC head, split, seed, and training budget fixed when isolating the stem. |
+| H3 | CNN controls remain below 1% EM. | The present depthwise-separable CNN stem alone is not a sufficient feature extractor under the current scratch training protocol. | If augmentation does not materially improve the 1M model, test a stronger or pretrained stem and a controlled label/image audit. | Keep the CTC head, split, seed, and training budget fixed when isolating the stem. |
 
 ## Confirmation gate
 

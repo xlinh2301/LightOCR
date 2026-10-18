@@ -1,7 +1,7 @@
 # LoopOCR-v1 first architecture screen
 
 **Date:** 2026-10-19  
-**Source:** `codex/architecture-discovery-loop` @ `21a442c`  
+**Source:** initial seven-run screen at `21a442c`; 1M capacity follow-up at `75e2f7d`
 **Execution:** gmoe, `MLR_LinhNX`, Quadro RTX 5000 16 GB, Python 3.12.3, PyTorch 2.11.0+cu128  
 **Purpose:** compare a compact CNN floor, shared recurrent Transformer refinements, an untied depth control, and a wider CNN control.
 
@@ -27,15 +27,25 @@ Before training, the deterministic 16-image train-only sanity check reached 15/1
 
 Every model-development prediction file was independently reconstructed against all 244 frozen IDs and labels. The reconstructed metrics matched the run summaries. All seven checkpoints, configs, manifests, histories, logs, predictions, and verification outputs have versioned Drive bundles in the tracker.
 
+## Capacity follow-up
+
+After the initial seven-run screen, the best-supported topology (shared K=4) was scaled from 184,524 to 998,028 parameters while holding the training protocol and seed fixed.
+
+| Run | Parameters | Best epoch | CER (%) | Exact match (%) | Exact strings | Runtime (s) | Peak VRAM (MiB) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Shared K=4, width 320 / FF 640 | 998,028 | 31 | 39.0459 | 18.4426 | 45/244 | 77.757 | 213.63 |
+
+Independent reconstruction found 442 edits over 1,132 reference characters (253 substitutions, 141 deletions, 48 insertions), matching the saved metrics. The checkpoint SHA-256 is `3a2f52a3e6a1227e34fa77d87768b04ce9ae842f66477581e216f2503e73931a`; config SHA-256 is `60e13e58019a7d76326c4af18d1abc75ab63e0b7b322d71d39497c9d6f12a4ba`. Training loss fell below 0.003 by epoch 41 while model-dev CER worsened to 40.19%, consistent with strong overfitting. Test/cross-data remained untouched.
+
 ## Interpretation
 
-Shared K=4 is the best observed configuration, but 18/244 exact strings is far below the >90% target of at least 220/244. K=6 is slightly worse than K=4. Untied depth-4 has over three times the parameters of shared K=4 and is also worse. The CNN controls fail to provide a useful floor. The tiny-set check and clean data audit make a basic CTC feasibility or total pipeline failure less likely, but do not rule out preprocessing, optimization, label noise, or representation problems.
+Shared K=4 is the best of the first seven configurations, but 18/244 exact strings is far below the >90% target of at least 220/244. K=6 is slightly worse than K=4. Untied depth-4 has over three times the parameters of shared K=4 and is also worse. The CNN controls fail to provide a useful floor. Scaling shared K=4 to 998,028 parameters raises EM to 45/244, but train/dev behavior indicates overfitting and the target remains unmet. The tiny-set check and clean data audit make a basic CTC feasibility or total pipeline failure less likely, but do not rule out preprocessing, optimization, label noise, or representation problems.
 
 This is a one-seed screen on an already exposed model-development split. It cannot establish a stable architecture ranking, generalization, or an OCR claim. Latency and FLOPs were not measured. No test or cross-data result was used.
 
 ## Next experiment
 
-Run `loopocr-shared-k4-width320-s42` with the same split, preprocessing, optimizer, batch, seed, and epoch budget. Set width 320, 4 attention heads, FF width 640, shared K=4, and iteration conditioning. The model has 998,028 trainable parameters by local code count. This isolates capacity scaling within the best-performing topology and brings the model to the approximately 1M target. The candidate config is `next_candidate_1m.json`. Keep the existing controller and single-GPU sequential execution; stop for review on any failed/interrupted run.
+Run `loopocr-shared-k4-width320-aug-s42` with the same 998,028-parameter shared K=4 architecture, split, optimizer, batch, seed, and epoch budget. Add mild train-only rotation, brightness/contrast variation, occasional blur, and small normalized tensor noise. This directly tests the observed overfit without changing the architecture. The candidate config is `next_candidate_1m_aug.json`. Keep the existing controller and single-GPU sequential execution; stop for review on any failed/interrupted run.
 
 ## Artifact references
 
@@ -48,3 +58,4 @@ Run `loopocr-shared-k4-width320-s42` with the same split, preprocessing, optimiz
 - Untied depth-4: [Drive archive](https://drive.google.com/file/d/1YPlsDLvr_dbreUqqFuk1wg9r6EnJO6D6/view)
 - CNN-wide control: [Drive archive](https://drive.google.com/file/d/1sYiMKKwNsWuDn9lmmHPv3EumXGPBsVQd/view)
 - Source snapshot: [Drive archive](https://drive.google.com/file/d/1PCWhwIMlMd8xvk9zWCBQUEgFZe0nSrq8/view)
+- 998k capacity follow-up: [Drive archive](https://drive.google.com/file/d/1pn4xAu6v2-jiQQbknOQ_0MBi-i4Ns48n/view)

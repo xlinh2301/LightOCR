@@ -1,13 +1,19 @@
 # Next architecture decision
 
-**Current decision:** `RUN REPRODUCIBLE SANITY GATE` before GPU screening.
+**Current decision:** test mild training-only augmentation on the 998,028-parameter shared K=4 model.
 
-**Evidence:** Prior experiments on the exposed 244-example model-dev split are weak and A10 is highly seed-unstable. Local Windows syntax/model/controller/metric/feasibility checks pass (14/14); the deployed version passed its 12 tests in MLR_LinhNX. SSH is intermittent but currently usable. A clean remote clone exists at `source/LightOCR-1M-architecture-loop`; the original uncommitted source tree and `.env` remain untouched. The fixed train/model-dev image/label audit passes (1467/244, no missing/ambiguous IDs), with label and split-manifest hashes recorded in `loop_progress.md`. The new reproducible both-split CTC/tiny-set gate still needs deployment and execution.
+## Evidence
 
-**Next actions:**
+- The first seven-run seed-42 screen completed with best EM 18/244 (7.38%) and CER 48.59% on shared K=4.
+- Scaling the same topology to 998,028 parameters improved to 45/244 EM (18.44%) and CER 39.05% on the same previously exposed Pilot 007 model-development split.
+- The 1M model's training loss dropped below 0.003, while model-development CER worsened after its best epoch (31), consistent with strong overfitting.
+- Data audit and CTC feasibility passed for all 1,467 train and 244 model-development samples. The tiny-set gate reached 15/16 exact strings. These checks do not establish generalization.
+- Every completed prediction set has been independently reconstructed. Test/cross-data have not been read. All run bundles are in Drive and linked in the tracker.
 
-1. Deploy the updated sanity runner to the clean gmoe clone and rerun all 14 component tests inside `MLR_LinhNX`.
-2. Run both-split CTC feasibility plus the 16-train-image tiny-set memorization diagnostic; record evidence and hashes.
-3. If all gates pass, initialize `loopocr_v1_screen_20261019` and execute its seven configurations sequentially, one GPU run at a time.
+## Next candidate
 
-No training job has been launched by this controller yet. It will refuse to start until `research_loop/sanity_results.json` records `status: passed`.
+Run `loopocr-shared-k4-width320-aug-s42` from `next_candidate_1m_aug.json`. Hold architecture, seed, split, optimizer, batch, and epoch budget fixed; apply mild rotation, brightness/contrast variation, occasional blur, and small tensor noise to training images only. Do not augment model-development images. This tests whether the observed overfitting responds to regularized visual variation.
+
+The implementation is on branch `codex/architecture-discovery-loop`. Run the component suite locally and in `MLR_LinhNX`, then fast-forward the separate gmoe clone. Queue through the existing controller state, which has 8 completed runs and a maximum budget of 30. Use one GPU job at a time; preserve failures and do not auto-retry or terminate jobs.
+
+If augmentation fails to improve materially, review sample-level error patterns and label/image provenance before choosing a different initialization or architecture. Continue to exclude test and cross-data from selection. Confirm any frozen candidate with seeds 42, 1337, and 2026 and report every seed. The existing Pilot 007 development split is exposed; any target result on it must be described as a development-target result, not independent validation.

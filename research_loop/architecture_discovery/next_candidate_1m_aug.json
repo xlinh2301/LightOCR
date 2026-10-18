@@ -1,0 +1,34 @@
+{
+  "run_id": "loopocr-shared-k4-width320-aug-s42",
+  "hypothesis": "The 998,028-parameter shared K=4 model improved to 45/244 EM but its train loss fell below 0.003 while model-dev CER rose after epoch 31. Mild image and tensor augmentation may reduce this observed overfitting while preserving the architecture and training protocol.",
+  "model": {
+    "width": 320,
+    "heads": 4,
+    "ff_width": 640,
+    "loops": 4,
+    "mixer": "shared",
+    "max_steps": 64,
+    "iteration_conditioning": true
+  },
+  "augmentation": {
+    "rotation_degrees": 2.0,
+    "brightness_delta": 0.12,
+    "contrast_delta": 0.12,
+    "blur_probability": 0.05,
+    "blur_radius_max": 0.6,
+    "gaussian_noise_std": 0.02
+  },
+  "seed": 42,
+  "epochs": 50,
+  "patience": 10,
+  "batch_size": 32,
+  "workers": 4,
+  "optimizer": "AdamW",
+  "lr": 0.001,
+  "weight_decay": 0.0001,
+  "checkpoint_metric": "lowest model-dev CER; exact-match tie-break",
+  "selection_split": "Pilot 007 model_dev; exploratory only",
+  "test_cross_data_access": false,
+  "workdir": "/media/gmo/linhnx/workspace/workdir_Research",
+  "repo_path": "/media/gmo/linhnx/workspace/workdir_Research/source/LightOCR-1M-architecture-loop"
+}

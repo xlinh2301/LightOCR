@@ -14,7 +14,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageFilter
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
@@ -46,9 +46,33 @@ def read_ids(path: Path) -> list[str]:
             for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
+def augment_crop(image: Image.Image, cfg: dict) -> Image.Image:
+    """Apply mild train-only geometric and photometric perturbations."""
+    if not cfg:
+        return image
+    rotation = float(cfg.get("rotation_degrees", 0.0))
+    if rotation:
+        image = image.rotate(random.uniform(-rotation, rotation),
+            resample=Image.Resampling.BILINEAR, expand=False,
+            fillcolor=tuple(int(v * 255) for v in MEAN))
+    brightness = float(cfg.get("brightness_delta", 0.0))
+    if brightness:
+        image = ImageEnhance.Brightness(image).enhance(
+            random.uniform(max(0.1, 1.0 - brightness), 1.0 + brightness))
+    contrast = float(cfg.get("contrast_delta", 0.0))
+    if contrast:
+        image = ImageEnhance.Contrast(image).enhance(
+            random.uniform(max(0.1, 1.0 - contrast), 1.0 + contrast))
+    if random.random() < float(cfg.get("blur_probability", 0.0)):
+        image = image.filter(ImageFilter.GaussianBlur(
+            radius=random.uniform(0.1, float(cfg.get("blur_radius_max", 0.6)))))
+    return image
+
+
 class Crops(Dataset):
-    def __init__(self, ids, labels, image_paths):
+    def __init__(self, ids, labels, image_paths, augmentation=None):
         self.ids, self.labels, self.image_paths = ids, labels, image_paths
+        self.augmentation = augmentation or {}
 
     def __len__(self):
         return len(self.ids)
@@ -57,7 +81,7 @@ class Crops(Dataset):
         sample_id = self.ids[index]
         truth = self.labels[sample_id]
         with Image.open(self.image_paths[sample_id]) as image:
-            image = image.convert("RGB")
+            image = augment_crop(image.convert("RGB"), self.augmentation)
             width, height = image.size
             out_width = max(1, min(192, round(width * 32 / height)))
             pixels = np.asarray(image.resize((out_width, 32), Image.Resampling.BILINEAR), dtype=np.float32) / 255
@@ -65,6 +89,9 @@ class Crops(Dataset):
         padded[:] = MEAN
         padded[:, :out_width] = pixels
         tensor = torch.from_numpy(((padded - MEAN) / STD).transpose(2, 0, 1).copy())
+        noise_std = float(self.augmentation.get("gaussian_noise_std", 0.0))
+        if noise_std:
+            tensor = tensor + torch.randn_like(tensor) * noise_std
         target = torch.tensor([int(c) + 1 for c in truth], dtype=torch.long)
         return tensor, target, sample_id, truth, out_width
 
@@ -169,7 +196,7 @@ def run(config_path: Path, run_dir: Path):
         raise RuntimeError("CUDA unavailable; this run requires MLR_LinhNX")
     generator = torch.Generator().manual_seed(seed)
     batch = int(cfg.get("batch_size", 32)); workers = int(cfg.get("workers", 4))
-    train_loader = DataLoader(Crops(train_ids, labels, image_paths), batch_size=batch, shuffle=True,
+    train_loader = DataLoader(Crops(train_ids, labels, image_paths, cfg.get("augmentation")), batch_size=batch, shuffle=True,
         generator=generator, num_workers=workers, pin_memory=True, collate_fn=collate)
     dev_loader = DataLoader(Crops(dev_ids, labels, image_paths), batch_size=batch, shuffle=False,
         num_workers=workers, pin_memory=True, collate_fn=collate)
