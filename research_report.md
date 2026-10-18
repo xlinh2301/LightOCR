@@ -1,8 +1,8 @@
-# LightOCR priority screen — 2026-10-18
+# LightOCR priority screens and A10 seed follow-up — 2026-10-18
 
 ## Scope and evidence
 
-This report summarizes the 20-entry priority queue in `docs/research/experiment_matrix_45_user_provided.md`. Screens use seed 42 and the previously exposed Pilot 007 split (1,467 train / 244 model-dev), RGB 32×192, greedy CTC decoding, and dev CER with exact-match tie-break for checkpoint selection. Results are **preliminary, single-seed exploratory measurements** on the exposed model-dev set; they do not support generalization, robustness, or research-novelty claims. Test and cross-data data were not read for these runs.
+This report summarizes the 20-entry priority queue in `docs/research/experiment_matrix_45_user_provided.md` and the follow-up to V03. Priority screens use seed 42; the A10 follow-up includes seeds 1337 and 2026 on the same previously exposed Pilot 007 split (1,467 train / 244 model-dev), RGB 32×192, greedy CTC decoding, and dev CER with exact-match tie-break for checkpoint selection. All results are **preliminary exploratory measurements** on the exposed model-dev set; they do not support generalization, robustness, or research-novelty claims. Test and cross-data data were not read.
 
 The experiment tracker is the authoritative row-level registry: [LightOCR Experiment Tracker](https://docs.google.com/spreadsheets/d/1AKPO5ShSrpTZHIKB_-FIsTlURNehGYYtu2bzNRyNwDo/edit). Every run's manifest, history, predictions, result, checkpoint and data audit are retained under its gmoe artifact path and backed up in Drive where a Drive link is recorded there.
 
@@ -27,21 +27,23 @@ The experiment tracker is the authoritative row-level registry: [LightOCR Experi
 | A02 | 92,108 | 13 | 64.58% | 3/244 (1.23%) | Completed; Gaussian blur |
 | A06 | 92,108 | 10 | 70.67% | 0/244 | Completed; synthetic glare |
 | A09 | 92,108 | 26 | 63.25% | 4/244 (1.64%) | Completed; combined degradation |
-| A10 | 92,108 | 36 | 26.86% | 80/244 (32.79%) | Completed; A09 plus glare; strongest screen result, requires independent confirmation |
+| A10 | 92,108 | 36 | 26.86% | 80/244 (32.79%) | Completed seed-42 screen; follow-up seeds vary substantially (see V03 below) |
 | L03 | — | — | — | — | Deferred: stable three-seed CTC convergence gate not met |
 | L04 | — | — | — | — | Deferred: stable three-seed CTC convergence gate not met |
 
 ## Interpretation
 
-The clearest observation is the A10 single-seed result (80 exact matches and CER 26.86% on model-dev) compared with A09 (4 exact matches and CER 63.25%). A10's training was numerically finite, produced nonblank outputs, and early-stopped after ten epochs without improving beyond epoch 36. This is evidence that the model can learn CTC alignments under the A10 training distribution; it is not evidence that the improvement is stable across seeds or datasets.
+The A10 seed-42 screen achieved 80 exact matches and CER 26.86%, compared with A09's 4 exact matches and CER 63.25%. This apparent gain did not repeat: seed 1337 achieved 2/244 exact matches and CER 64.49%, while seed 2026 achieved 1/244 and CER 70.05%. Across the three predeclared seeds, mean CER is 53.80% (sample SD 23.50 percentage points) and mean exact match is 11.34% (sample SD 18.58 percentage points). The seed-42 result was used to select A10 for follow-up on the same exposed development split, so this is a repeatability screen with selection bias, not an independent confirmatory evaluation.
 
-L03/L04 remain gated. The clean B02 reference screen achieved CER 71.38% with zero exact matches, and A10 has only one screening seed. The protocol's confirmation seeds (42, 1337, 2026) have not been run for A10. Therefore the campaign has not established stable CTC performance across seeds. Do not use test/cross-data to resolve this gate. Resume L03/L04 only after an authorized, predeclared confirmation stage establishes repeatable nonblank CTC performance.
+Stable CTC convergence was not established: two follow-up seeds were near-zero exact match and substantially worse than the selected screen. Keep L03/L04 deferred. Do not use test/cross-data to resolve this gate. Any later loss experiment needs a separately frozen protocol and a functioning baseline across seeds.
 
 Other augmentation screens do not show a consistent benefit: A01/A02 improved CER relative to B02 in this one split, A06 did not, and A09 largely tracked A01. No ranking should be treated as confirmatory. The effects of seed, sample/source grouping, and this exposed split remain unmeasured here.
 
 ## Provenance and artifacts
 
-- Runner and OpenSpec: `experiments/a01_a02_a06_a09_a10_ctc_augmentation/train.py`, `openspec/changes/a01-a02-a06-a09-a10-ctc-augmentation-screen/`.
-- Source revision: `6540e1e` (GitHub main); source snapshot: [LightOCR-source-6540e1e.zip](https://drive.google.com/file/d/1MUBBF0pJ8dJM6Pp-rDotWzZb_j31FEzV/view).
+- Runner: `experiments/a01_a02_a06_a09_a10_ctc_augmentation/train.py`; runner SHA-256 `49fbdfcd2b8fc463b18403fc59cc750cdd3001fe56c85b0ec3e415ee2edbb9d8`; run protocol and tasks: `openspec/changes/v03-a10-augmentation-seed-confirmation/`.
+- Runner source revision: `6540e1e`; current documentation revision will be recorded in Git after this report update.
+- Seed-1337 archive/checkpoint: [artifact bundle](https://drive.google.com/file/d/1hygqiKPrrBLutTlVEt1B5FG5_gRGeQxI/view), [checkpoint](https://drive.google.com/file/d/1Foy7Oiw34KIOcdwOuRfCbyVbVzdBouiY/view); checkpoint SHA-256 `4275fbeb83ebd6b79896edffd42c1e5bb52e165691cda280b1432ae392cfc1f8`.
+- Seed-2026 archive/checkpoint: [artifact bundle](https://drive.google.com/file/d/1oYYNvYtzzXtlT1brH_LVVEHZQAA1exYi/view), [checkpoint](https://drive.google.com/file/d/13Q4g75VlnyuC-FXOaNw0th1oTQErDMuh/view); checkpoint SHA-256 `0170343f6312fea07e62116dea796c0b80b3d47c444986d0f49ea1fcc494a971`.
 - Run-specific artifact and checkpoint links, hashes, manifests, and output paths are recorded in the tracker `Experiments` and `Evaluations` tabs.
 - N08/N09/N11 source revision: `9ecf752`; source snapshot: [LightOCR-source-9ecf752.zip](https://drive.google.com/file/d/1z8c6tWf4df7KC8rNYfYdTygQpSVSQjwM/view).

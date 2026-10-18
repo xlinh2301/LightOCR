@@ -16,6 +16,6 @@ A01,Completed,A01-CTC-S42-20261018-SCREEN01,42,92108,29,244,63.25088339,0,0,Brig
 A02,Completed,A02-CTC-S42-20261018-SCREEN01,42,92108,13,244,64.57597173,3,1.229508197,Gaussian blur
 A06,Completed,A06-CTC-S42-20261018-SCREEN01,42,92108,10,244,70.67137809,0,0,Synthetic glare
 A09,Completed,A09-CTC-S42-20261018-SCREEN01,42,92108,26,244,63.25088339,4,1.639344262,Combined degradation
-A10,Completed,A10-CTC-S42-20261018-SCREEN01,42,92108,36,244,26.85512367,80,32.78688525,Combined degradation plus glare; confirmation required
+A10,Completed,A10-CTC-S42-20261018-SCREEN01,42,92108,36,244,26.85512367,80,32.78688525,Combined degradation plus glare; three-seed follow-up V03 completed; see run_registry_a10_seed_confirmation_20261018.csv
 L03,Deferred,,,,,,,,,Three-seed stable CTC gate not met
 L04,Deferred,,,,,,,,,Three-seed stable CTC gate not met
