@@ -23,3 +23,13 @@ L03/L04 are deferred. A10 results across seeds 42/1337/2026 have mean CER 53.80%
 - Target ≥220/244 remains unmet. The exposed model-dev set supports exploratory tuning only; no test/cross-data access.
 - Next one-factor screen: input 48×384, with `max_steps=96` to match T=96, and all other settings held fixed against the strongaug 48×320 run.
 - Run bundle https://drive.google.com/file/d/11jtWOtWYKrCYpkyYzaMijKRbuRtX7sq5/view; report https://drive.google.com/file/d/1mLnlniTZqPRnj_axMaxybDx0JZW6xDMy/view; checkpoint https://drive.google.com/file/d/1h_WuOg_UeTYI1vL_Y6JSuMdODFho6Z6X/view.
+
+## Pretrained-first pivot (2026-10-19, user-directed)
+
+- Stop spending the remaining scratch architecture-search budget on image-size or height-pooling variants until pretrained transfer is assessed. See `openspec/changes/pretrained-first-acceleration/`.
+- Recent scratch results reinforce the pivot: learned vertical attention run18 seed42 achieved 158/244 exact, CER 10.8657%; learned column projection run19 seed42 achieved 156/244, CER 12.1025%. Matched mean-pooling run11 seed42 achieved 167/244, CER 9.5406%. Both vertical alternatives are rejected; all metrics are exploratory on previously exposed model-dev IDs.
+- First zero-shot teacher screen: official PaddleOCR PP-OCRv5 Mobile Latin recognition (official model list explicitly states numeric recognition) and English SVTR-T CTC. Preserve original checkpoints and predictions; verify color/resize/normalization/padding, dictionary order, CTC blank and exact string decoder before reporting scores.
+- Keep raw teacher-decoded strings primary; digit-constrained decoding, if examined, is a separate diagnostic. Never strip leading zeros or normalize silently.
+- If transfer is promising, fine-tune on the same frozen 2,201 training samples, comparing frozen backbone/head-only, partial unfreezing and full fine-tuning with separate learning rates. Only after teacher comparison, implement sequence-preserving PretrainedLoopOCR and evaluate K1/K4 plus scratch/pretrained initialization. Consider KD only if the teacher beats matched LoopOCR. Audit residual errors/data coverage before any training-only synthetic data intervention.
+- Target remains >90% exact match for each of seeds 42/1337/2026 and mean >90% on development. The development IDs are exposed; target achievement there is not independent validation. Test and cross-data remain closed.
+- MLR_LinhNX has Paddle 2.6.2 CUDA-enabled, PaddleOCR/PaddleX and PyTorch available. Record exact PaddleOCR/PaddleX versions and check pretrained model API/download path before inference.
