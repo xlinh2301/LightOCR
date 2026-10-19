@@ -28,3 +28,16 @@ Provenance audit: the run manifest omitted `source_commit`; its `train.py` conte
 ### Next candidate and limitations
 
 Run the same predeclared best recipe once with frozen seed 2026, changing only the seed, after recording the runtime label-file SHA256 in the candidate metadata. This completes the requested three-seed exploratory check on the exposed IDs; it cannot serve as independent confirmation or support a >90% generalization claim. Current results for seeds 42 and 1337 are 167/244 (68.44%) and 163/244 (66.80%), respectively, far below the ≥220/244 threshold. Keep test/cross-data closed. After seed2026, reassess the architecture/training bottleneck rather than continuing seed repeats without a new hypothesis.
+## Run 17: learned vertical attention pooling (2026-10-19)
+
+Run17 completed all 50 epochs at seed2026; checkpoint selection chose epoch46. The independent verifier matched all 244 expected model-dev IDs and runtime labels. Reconstructed exact match was 168/244 (68.85246%), CER 112/1,132=9.89399%, with 53 substitutions, 47 deletions, 12 insertions, 23 wrong-but-same-length strings, and 76 failed strings. Failed strings by reference length: 1/3-digit, 28/4-digit, 32/5-digit, 15/6-digit. Parameter count was 1,003,469; runtime 1,038.16s; peak VRAM 426,199,552 bytes.
+
+The same-seed 48x320 strong-augmentation mean-pooling run15 achieved 169/244 exact with the same 9.89399% CER. Thus attention pooling did not improve selected CER and yielded one fewer exact string than mean pooling. Compared with run16 (100-epoch cap, early stopped), it was eight exact samples higher at identical CER, but that is a secondary exploratory comparison. The exposed model-dev split cannot establish generalization.
+
+Hashes: resolved config ccca88a5c51e76fe23ad690226e62cb0c594c22efc36da44c114cb957db56613; history b4328f42a68b7de19a382da77b4c5f77a6b97844cf6b73ec05e92270dce69264; predictions 2bfd01d506d278263c53bf5ceca6ef654b28a546e67afd3151d0842987de70e3; checkpoint 4c5a94169a9f36379cc46f17ee128f849984cdbdeb7ad29e892d4a66a3e7943e. Split manifest SHA a6355e23ebf1d5300929784412db440858138a8295254fa7cb029c0c1be7f6f4; runtime label SHA 17a83fb545c7fcf3a3d3d4ebf267018d94585d71a3445588c144195e865a3851. The independent verifier report and failure table are in the Drive run bundle. Bundle: https://drive.google.com/file/d/1BYYe28YCXgZnsQVDbrYLiDND5V99UbpO/view; separate checkpoint archive: https://drive.google.com/file/d/1frsyur0WX9eonF97YycSiCQr3zmpKaWX/view.
+
+Manifest source_commit is blank; the recorded train.py SHA resolves to the clean a4376cf source after normalizing Windows line endings, and the raw loopocr.py SHA matches. Training used Quadro RTX 5000 / PyTorch 2.11.0+cu128. Test/cross-data were not accessed.
+
+### Next candidate
+
+Run18 will repeat attention pooling at seed42 with all other settings fixed, comparing against the matched seed42 mean-pooling run13. The run17 single-seed result does not support promoting attention pooling; run18 checks whether any effect is seed-stable. If it again fails to improve, stop spending runs on this pooling variant and move to another predeclared image-structure hypothesis. Keep one GPU job at a time and test/cross-data closed.
