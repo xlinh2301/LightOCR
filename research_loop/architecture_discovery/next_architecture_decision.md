@@ -66,3 +66,17 @@ Provenance audit: the run manifest omitted `source_commit`; its `train.py` conte
 ### Next candidate and limitations
 
 Run the same predeclared best recipe once with frozen seed 2026, changing only the seed, after recording the runtime label-file SHA256 in the candidate metadata. This completes the requested three-seed exploratory check on the exposed IDs; it cannot serve as independent confirmation or support a >90% generalization claim. Current results for seeds 42 and 1337 are 167/244 (68.44%) and 163/244 (66.80%), respectively, far below the ≥220/244 threshold. Keep test/cross-data closed. After seed2026, reassess the architecture/training bottleneck rather than continuing seed repeats without a new hypothesis.
+
+## Run 15: seed 2026 completed; next experiment decision
+
+Run 15/30 (`loopocr-local-split2201-48x320-strongaug-s2026`) completed at best epoch 47 of the 50-epoch cap. The independent verifier reconstructed all 244 expected IDs and runtime labels: 169/244 exact (69.2623%), CER 112/1,132=9.89399%, 60 substitutions, 40 deletions, 12 insertions, and 31 wrong same-length strings. Failure counts by reference length were 1/2 for length 3, 28 for length 4, 32 for length 5, and 14 for length 6. This is still exploratory because the model-dev IDs are exposed, and it is below the >90% per-seed target.
+
+The run had 1,003,148 parameters, runtime 1,002.315 s, and peak VRAM 419,947,008 bytes. Resolved config SHA-256 `c3373c8236e2441e6ec7230eab04bd1ada192e35238a2f0a2257179a17ff53c5`; checkpoint SHA-256 `3b581aa0f0077ea7d158fafc228e7e813949dc277719f8c0126692113e8ddb6d`; predictions SHA-256 `b7d1abc27d8c23148ff4c876e82d30f273220185780c66c1ee4f6e89d2ab131d`; reconstructed metrics report SHA-256 `9c87c971c90b9e4759527f559f4c8619042200fd294e416c2375716d9a6d49eb`; bundle SHA-256 `b8c208c2eee9ec7ad1bde419fd6d14f82a90c43f210df281e16b9a33052e6235`. Bundle: https://drive.google.com/file/d/18mseNmBbPOpOGmowgn8rMkKx8ciUQk8P/view; checkpoint: https://drive.google.com/file/d/1EMWuLKN7i2-3wtdHAHCrv1cu2bP6hKTv/view.
+
+Training history ended at epoch 50. Best CER occurred at epoch 47; epochs 48–50 fluctuated between CER 9.98–10.25% and exact match 67.62–68.85%. Two of the three seeds (1337 and 2026) selected best checkpoints at epoch 47; seed42 selected epoch34. This suggests the 50-epoch budget may truncate useful optimization, but the late-epoch metric fluctuation makes the hypothesis uncertain.
+
+### Next candidate: same seed and recipe, extend only the epoch cap
+
+Queue `loopocr-local-split2201-48x320-strongaug-s2026-100ep`, retaining seed2026, shared K4 width320/FF640, 48×320 preprocessing, strong train-only augmentation, the same exposed split, optimizer, batch32, patience10 and lowest-CER checkpoint selection; change only the maximum epoch budget from 50 to 100. The question is whether more optimization can improve the best dev CER/EM before patience-based stopping. Compare the first 50-epoch trajectory against run15 to confirm reproducibility, then report any improvement only as exploratory. Do not inspect test/cross-data or freeze a recipe on this dev set.
+
+Source provenance remains imperfect: run15 manifest has blank `source_commit`; its saved `loopocr.py` SHA matched local commit 64c552d, but `train.py` SHA did not match the current local file, so exact trainer revision is unverified. Preserve this limitation.
