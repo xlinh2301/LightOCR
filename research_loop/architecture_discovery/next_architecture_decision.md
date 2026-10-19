@@ -94,3 +94,5 @@ Across the three 50-epoch seed runs of the fixed strongaug recipe, exact counts 
 ### Next decision gate
 
 Do not spend the next run on another epoch-cap extension. Review saved sample-level error cases and the existing architecture notes, then predeclare a new one-factor hypothesis (e.g. preserve vertical features more effectively than the current mean-height pooling). Keep one GPU job at a time and the test/cross-data sets closed. Any structural code change must follow the project OpenSpec workflow.
+
+Run16 artifact sync follow-up (2026-10-19): gmoe SSH recovered; bundle and checkpoint are now backed up in Drive. Bundle: https://drive.google.com/file/d/1XoS1WnN_cOgrxTseI4r_OCbJWzWGvncS/view; checkpoint: https://drive.google.com/file/d/1a6xKwlJulSbooMg0OYpCgRFPpL0n7JCg/view. Bundle SHA-256 28389dcc12e644d8e747ede30ad0a8d37440d429bc229600485fd1c9713509b3; checkpoint SHA-256 ebeb5cdca826658a60773285e42cb104e83ad2d6f4db5037b3216ceb095cf0be.
