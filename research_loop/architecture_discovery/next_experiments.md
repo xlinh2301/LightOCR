@@ -41,3 +41,7 @@ Manifest source_commit is blank; the recorded train.py SHA resolves to the clean
 ### Next candidate
 
 Run18 will repeat attention pooling at seed42 with all other settings fixed, comparing against the matched seed42 mean-pooling run13. The run17 single-seed result does not support promoting attention pooling; run18 checks whether any effect is seed-stable. If it again fails to improve, stop spending runs on this pooling variant and move to another predeclared image-structure hypothesis. Keep one GPU job at a time and test/cross-data closed.
+
+## Run18 result and next test
+
+Run18 (seed42 attention pooling) completed at best epoch37/50: 158/244 exact, CER10.86572%; independent reconstruction matched all IDs/labels. It underperformed the matched run11 mean-pooling result (167/244 exact, CER9.5406%), so do not promote attention pooling. Run17 seed2026 also showed no attention-pooling improvement. Next hypothesis: preserve stem-row structure with a learned column projection; write OpenSpec, test shape/parameter invariants, then run one controlled seed42 screen. No test/cross-data access.

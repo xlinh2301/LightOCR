@@ -1,6 +1,6 @@
 {
   "run_id": "loopocr-local-split2201-48x320-attnpool-strongaug-s42",
-  "hypothesis": "Run17 seed2026 learned attention pooling matched the mean-pooling baseline CER and was one exact sample lower. Repeat the same attention-pooling config at seed42, changing only the seed relative to run17 and compare against the matched seed42 mean-pooling run13. This tests whether attention pooling has a reproducible effect across seeds; all scores remain exploratory on exposed model-dev IDs.",
+  "hypothesis": "Run17 seed2026 learned attention pooling matched the mean-pooling baseline CER and was one exact sample lower. Repeat the same attention-pooling config at seed42, changing only the seed relative to run17 and compare against the matched seed42 mean-pooling run11. This tests whether attention pooling has a reproducible effect across seeds; all scores remain exploratory on exposed model-dev IDs.",
   "model": {
     "width": 320,
     "heads": 4,

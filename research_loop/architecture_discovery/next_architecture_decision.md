@@ -117,3 +117,15 @@ Manifest source_commit is blank; the recorded train.py SHA resolves to the clean
 ### Next candidate
 
 Run18 will repeat attention pooling at seed42 with all other settings fixed, comparing against the matched seed42 mean-pooling run13. The run17 single-seed result does not support promoting attention pooling; run18 checks whether any effect is seed-stable. If it again fails to improve, stop spending runs on this pooling variant and move to another predeclared image-structure hypothesis. Keep one GPU job at a time and test/cross-data closed.
+
+## Run 18: attention-pooling seed42 follow-up (2026-10-19)
+
+Run18 completed at epoch47/50 by early stopping; best checkpoint epoch37. Independent reconstruction against the frozen 244 model-dev IDs and runtime labels matched every sample. Exact match was 158/244 (64.7541%); CER was 123/1,132=10.86572%, with 64 substitutions, 40 deletions, 19 insertions, 33 wrong same-length strings, and 86 failed strings. Parameters: 1,003,469; runtime 969.89s; peak VRAM 426,199,552 bytes. The independent metrics exactly match metrics_dev.json and summary.json.
+
+The matched-seed mean-pooling comparator is run11 (loopocr-local-split2201-48x320-strongaug-s42), with 167/244 exact and CER 9.5406%. Attention pooling is 9 exact strings lower and CER +1.325 percentage points. Together with run17 seed2026 (same CER as the seed2026 mean-pool comparator, one fewer exact string), the evidence does not support promoting attention pooling. Stop spending budget on this pooling variant.
+
+Run manifest source_commit is blank; config SHA256 172b3d290080e1c77199be0ec57b147ecb2288e13c9968d0fe7babfdc6956bb4; history SHA256 55d031f6851e1c8764c180e68fccc7b9066f9472f650c84f7b44b87037367bf4; predictions SHA256 3b031c4cacccd4626f12de87617ce8d58be3536456133eca1277d877585b8037; checkpoint SHA256 7c83a0ddfebd1afbc9232a4f15f9cdf08aa54e89d7480883451196a3b8d3670c. Split SHA256 a6355e23ebf1d5300929784412db440858138a8295254fa7cb029c0c1be7f6f4; runtime label SHA256 17a83fb545c7fcf3a3d3d4ebf267018d94585d71a3445588c144195e865a3851. The run bundle and separate checkpoint archive were created on gmoe; Drive upload is pending VPN/SSH recovery. All results are exploratory on exposed model-dev IDs; no test/cross-data was accessed.
+
+### Next hypothesis
+
+Test a column-wise learned projection that preserves vertical feature structure, rather than averaging/soft-attending over stem rows. Keep the CTC decoder, data split, seed, augmentation, optimizer, and schedule fixed. This is a new architecture change: write an OpenSpec proposal, add shape/parameter tests, then train one seed42 screen if preflight and clean deployment pass. Treat it as a screen only; do not promote based on one seed.
