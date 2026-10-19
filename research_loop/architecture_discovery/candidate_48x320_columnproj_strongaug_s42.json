@@ -1,0 +1,43 @@
+{
+  "run_id": "loopocr-local-split2201-48x320-columnproj-strongaug-s42",
+  "hypothesis": "Run18 seed42 learned attention pooling was inferior to the matched mean-pooling run11. Test whether preserving both stem rows with a learned per-column projection improves vertical glyph representation; hold all training/data settings fixed against run11. Exploratory on exposed model-dev only.",
+  "model": {
+    "width": 320,
+    "heads": 4,
+    "ff_width": 640,
+    "loops": 4,
+    "mixer": "shared",
+    "max_steps": 80,
+    "iteration_conditioning": true,
+    "height_pooling": "column_projection",
+    "projection_rows": 2
+  },
+  "image_height": 48,
+  "image_width": 320,
+  "augmentation": {
+    "rotation_degrees": 4,
+    "brightness_delta": 0.2,
+    "contrast_delta": 0.2,
+    "blur_probability": 0.1,
+    "blur_radius_max": 1,
+    "gaussian_noise_std": 0.04
+  },
+  "seed": 42,
+  "epochs": 50,
+  "patience": 10,
+  "batch_size": 32,
+  "workers": 0,
+  "lr": 0.001,
+  "weight_decay": 0.0001,
+  "expected_train_n": 2201,
+  "expected_model_dev_n": 244,
+  "checkpoint_metric": "lowest model-dev CER; exact-match tie-break",
+  "selection_split": "locally reconstructed exploratory split; previously exposed Pilot007 model_dev IDs; do not use for independent confirmation",
+  "split_manifest_sha256": "a6355e23ebf1d5300929784412db440858138a8295254fa7cb029c0c1be7f6f4",
+  "label_source_sha256": "17a83fb545c7fcf3a3d3d4ebf267018d94585d71a3445588c144195e865a3851",
+  "image_file_set_sha256": "00ff7871e666bc656626eaff6cd7465407704c157cb07831ed98ea28e7bcf58c",
+  "test_cross_data_access": false,
+  "workdir": "/workspace/media/gmo/linhnx/workspace/workdir_Research",
+  "source_root": "/workspace/media/gmo/linhnx/workspace/workdir_Research/results/lightocr_loopocr_v1_screen_20261019/local_split2201_source",
+  "repo_path": "/workspace/media/gmo/linhnx/workspace/workdir_Research/source/LightOCR-1M-architecture-loop"
+}

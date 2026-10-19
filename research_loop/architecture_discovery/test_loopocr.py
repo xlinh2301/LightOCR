@@ -40,6 +40,27 @@ class LoopOCRTests(unittest.TestCase):
         self.assertTrue(torch.isfinite(attention_model.height_attention.weight.grad).all())
         self.assertEqual(parameter_count(attention_model) - parameter_count(mean_model), 33)
 
+    def test_column_projection_preserves_rows_and_has_finite_gradients(self):
+        model = LoopOCR(width=32, heads=4, ff_width=64, loops=1,
+                        max_steps=80, height_pooling="column_projection",
+                        projection_rows=2)
+        images = torch.randn(2, 3, 48, 320)
+        output = model(images)
+        self.assertEqual(output.shape, (2, 80, 11))
+        loss = -output.mean()
+        loss.backward()
+        self.assertTrue(torch.isfinite(model.height_projection.weight.grad).all())
+        mean_model = LoopOCR(width=32, heads=4, ff_width=64, loops=1,
+                             max_steps=80, height_pooling="mean")
+        self.assertEqual(parameter_count(model) - parameter_count(mean_model),
+                         (32 * 2) * 32 + 32)
+
+    def test_column_projection_rejects_unexpected_stem_height(self):
+        model = LoopOCR(width=32, heads=4, ff_width=64, loops=1,
+                        max_steps=80, height_pooling="column_projection",
+                        projection_rows=2)
+        with self.assertRaisesRegex(ValueError, "column_projection expects 2 stem rows"):
+            model(torch.randn(1, 3, 32, 320))
     def test_invalid_height_pooling_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "unknown height pooling"):
             LoopOCR(width=32, heads=4, ff_width=64, loops=1, height_pooling="max")

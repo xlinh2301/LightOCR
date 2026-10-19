@@ -45,3 +45,4 @@ Run18 will repeat attention pooling at seed42 with all other settings fixed, com
 ## Run18 result and next test
 
 Run18 (seed42 attention pooling) completed at best epoch37/50: 158/244 exact, CER10.86572%; independent reconstruction matched all IDs/labels. It underperformed the matched run11 mean-pooling result (167/244 exact, CER9.5406%), so do not promote attention pooling. Run17 seed2026 also showed no attention-pooling improvement. Next hypothesis: preserve stem-row structure with a learned column projection; write OpenSpec, test shape/parameter invariants, then run one controlled seed42 screen. No test/cross-data access.
+- Candidate prepared: 48x320 column-wise learned projection over the two stem rows, seed42, expected 1,208,268 parameters; see OpenSpec change preserve-vertical-column-structure and candidate_48x320_columnproj_strongaug_s42.json. Await clean remote sync and controller/GPU-idle check before queueing.

@@ -48,7 +48,7 @@ class LoopOCR(nn.Module):
     def __init__(self, *, width: int = 128, heads: int = 4, ff_width: int = 256,
                  loops: int = 1, mixer: str = "shared", max_steps: int = 64,
                  iteration_conditioning: bool = True, dropout: float = 0.0,
-                 height_pooling: str = "mean",
+                 height_pooling: str = "mean", projection_rows: int = 2,
                  classes: int = 11):
         super().__init__()
         if width % heads:
@@ -59,11 +59,16 @@ class LoopOCR(nn.Module):
             raise ValueError("mixer='none' requires loops=0")
         if mixer != "none" and loops < 1:
             raise ValueError("Transformer mixers require loops >= 1")
-        if height_pooling not in {"mean", "attention"}:
+        if height_pooling not in {"mean", "attention", "column_projection"}:
             raise ValueError(f"unknown height pooling: {height_pooling}")
         self.loops = loops
         self.mixer = mixer
         self.height_pooling = height_pooling
+        self.projection_rows = projection_rows if height_pooling == "column_projection" else None
+        self.height_projection = (nn.Linear(width * projection_rows, width)
+                                  if height_pooling == "column_projection" else None)
+        if self.projection_rows is not None and self.projection_rows < 1:
+            raise ValueError("projection_rows must be >= 1")
         self.height_attention = nn.Linear(width, 1) if height_pooling == "attention" else None
         if self.height_attention is not None:
             # Start at uniform pooling so this factor begins as the existing model.
@@ -101,13 +106,21 @@ class LoopOCR(nn.Module):
 
     def forward(self, images: torch.Tensor) -> torch.Tensor:
         features = self.stem(images)
-        if self.height_attention is None:
+        if self.height_pooling == "mean":
             x = features.mean(dim=2).transpose(1, 2).contiguous()
-        else:
+        elif self.height_pooling == "attention":
             # [B,C,H,T] -> [B,T,H,C], then learn a per-frame distribution over rows.
             rows = features.permute(0, 3, 2, 1).contiguous()
             weights = self.height_attention(rows).softmax(dim=2)
             x = (rows * weights).sum(dim=2).contiguous()
+        else:
+            # Preserve per-row glyph features and project each vertical column into one token.
+            rows = features.permute(0, 3, 2, 1).contiguous()  # [B,T,H,C]
+            if rows.shape[2] != self.projection_rows:
+                raise ValueError(
+                    f"column_projection expects {self.projection_rows} stem rows, got {rows.shape[2]}"
+                )
+            x = self.height_projection(rows.flatten(start_dim=2))
         if x.shape[1] > self.position.shape[1]:
             raise ValueError(f"sequence length {x.shape[1]} exceeds positional capacity {self.position.shape[1]}")
         x = self.input_norm(x + self.position[:, :x.shape[1]])
