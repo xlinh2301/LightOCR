@@ -80,3 +80,17 @@ Training history ended at epoch 50. Best CER occurred at epoch 47; epochs 48–5
 Queue `loopocr-local-split2201-48x320-strongaug-s2026-100ep`, retaining seed2026, shared K4 width320/FF640, 48×320 preprocessing, strong train-only augmentation, the same exposed split, optimizer, batch32, patience10 and lowest-CER checkpoint selection; change only the maximum epoch budget from 50 to 100. The question is whether more optimization can improve the best dev CER/EM before patience-based stopping. Compare the first 50-epoch trajectory against run15 to confirm reproducibility, then report any improvement only as exploratory. Do not inspect test/cross-data or freeze a recipe on this dev set.
 
 Source provenance remains imperfect: run15 manifest has blank `source_commit`; its saved `loopocr.py` SHA matched local commit 64c552d, but `train.py` SHA did not match the current local file, so exact trainer revision is unverified. Preserve this limitation.
+
+## Run 16: extended epoch-cap follow-up (2026-10-19)
+
+Run 16 (`loopocr-local-split2201-48x320-strongaug-s2026-100ep`) retained the seed2026 48×320 strongaug configuration and changed only the maximum epoch cap from 50 to 100. It early-stopped at epoch37 after patience10, with the best checkpoint at epoch27. Independent reconstruction matched all 244 expected IDs and runtime labels: 160/244 exact (65.5738%), CER 112/1,132=9.89399%, with 54 substitutions, 45 deletions, 13 insertions, and 37 wrong same-length strings. Runtime was 745.001s; parameters 1,003,148; peak VRAM 419,947,008 bytes.
+
+Compared with run15 (169/244 exact, same CER 9.89399%, selected epoch47/50), the longer cap did not yield a better selected CER; run16 had nine fewer exact outputs and early-stopped well before reaching its new cap. Thus the available evidence does not support the 50-epoch cap as the main bottleneck. The model-dev split is exposed, so the difference is exploratory and not independent confirmation. Test/cross-data remained untouched.
+
+Hashes: config `fc47acd1cf71510c9137c08f8b8e419cf320b7ae38726c5dbabc9364bbf8f7cb`; history `4f1cc2c6b2ccc660bb97e115b669d6e156048dace9ad9d06d468722447bf94ed`; predictions `85dd794c847b3bb251e5e9169e8789768e3142737dc766155bea38cac0b25ecf`; checkpoint `ebeb5cdca826658a60773285e42cb104e83ad2d6f4db5037b3216ceb095cf0be`; reconstructed metrics `3effe162cf9b42373c750cc03ab10185064f9bd266dc7209e53426816b1d622f`. Run bundle/checkpoint Drive upload is pending intermittent gmoe SSH recovery; tracker contains their remote path and hashes. Manifest `source_commit` is blank.
+
+Across the three 50-epoch seed runs of the fixed strongaug recipe, exact counts are seed42 167/244, seed1337 163/244 and seed2026 169/244; all are substantially below the >90% per-seed target and use exposed development IDs. These cannot establish generalization.
+
+### Next decision gate
+
+Do not spend the next run on another epoch-cap extension. Review saved sample-level error cases and the existing architecture notes, then predeclare a new one-factor hypothesis (e.g. preserve vertical features more effectively than the current mean-height pooling). Keep one GPU job at a time and the test/cross-data sets closed. Any structural code change must follow the project OpenSpec workflow.
