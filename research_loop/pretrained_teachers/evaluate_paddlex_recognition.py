@@ -10,6 +10,7 @@ import hashlib
 import importlib.metadata
 import json
 import time
+import shutil
 from pathlib import Path
 
 
@@ -92,6 +93,28 @@ def model_files(model_name: str) -> list[dict]:
     return found
 
 
+def read_model_config(model_name: str) -> tuple[dict, list[Path]]:
+    import yaml
+
+    paths = [Path.home() / ".paddlex" / "official_models" / model_name / "inference.yml"]
+    config_path = next((path for path in paths if path.is_file()), None)
+    if config_path is None:
+        return {}, []
+    config = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    preprocess = config.get("PreProcess", {})
+    postprocess = config.get("PostProcess", {})
+    chars = postprocess.get("character_dict", []) if isinstance(postprocess, dict) else []
+    dict_blob = json.dumps(chars, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    return {
+        "inference_config_path": str(config_path),
+        "inference_config_sha256": sha256(config_path),
+        "preprocess_config": preprocess,
+        "postprocess_name": postprocess.get("name") if isinstance(postprocess, dict) else None,
+        "character_dictionary_size": len(chars),
+        "character_dictionary_sha256": hashlib.sha256(dict_blob).hexdigest(),
+    }, [config_path]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-name", required=True)
@@ -132,6 +155,9 @@ def main() -> None:
         raise RuntimeError(f"prediction count mismatch: got {len(rows)}, expected {len(ids)}")
 
     args.output_dir.mkdir(parents=True, exist_ok=False)
+    model_config, config_paths = read_model_config(args.model_name)
+    for config_path in config_paths:
+        shutil.copy2(config_path, args.output_dir / config_path.name)
     prediction_path = args.output_dir / "predictions_dev.jsonl"
     with prediction_path.open("w", encoding="utf-8", newline="\n") as stream:
         for sid, path, output in zip(ids, paths, rows):
@@ -156,6 +182,7 @@ def main() -> None:
         "paddleocr_version": package_version("paddleocr"),
         "paddlex_version": package_version("paddlex"),
         "checkpoint_files": model_files(args.model_name),
+        "model_config": model_config,
         "predictions_sha256": sha256(prediction_path),
         "test_and_cross_data_read": False,
     }
