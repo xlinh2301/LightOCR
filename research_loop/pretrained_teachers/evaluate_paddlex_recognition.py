@@ -102,19 +102,32 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--device", default="gpu:0")
     parser.add_argument("--source-url", required=True)
+    parser.add_argument("--limit", type=int, default=None,
+                        help="Optional prefix-only smoke run; never use its partial metrics for model selection.")
     args = parser.parse_args()
     if args.output_dir.exists() and any(args.output_dir.iterdir()):
         raise FileExistsError(f"refusing to overwrite non-empty output directory: {args.output_dir}")
     ids = load_ids(args.split)
+    if args.limit is not None:
+        if args.limit < 1:
+            raise ValueError("--limit must be positive")
+        ids = ids[:args.limit]
     paths = resolve_images(ids, args.image_root)
 
     from paddleocr import TextRecognition
 
     model = TextRecognition(model_name=args.model_name, device=args.device)
     start = time.perf_counter()
-    results = model.predict(input=[str(p) for p in paths], batch_size=args.batch_size)
+    rows = []
+    for offset in range(0, len(paths), args.batch_size):
+        batch_paths = paths[offset:offset + args.batch_size]
+        results = model.predict(input=[str(p) for p in batch_paths], batch_size=args.batch_size)
+        batch_rows = [unpack_result(result) for result in results]
+        if len(batch_rows) != len(batch_paths):
+            raise RuntimeError(f"batch prediction count mismatch at {offset}: got {len(batch_rows)}, expected {len(batch_paths)}")
+        rows.extend(batch_rows)
+        print(f"inference_progress={len(rows)}/{len(paths)}", flush=True)
     elapsed = time.perf_counter() - start
-    rows = [unpack_result(result) for result in results]
     if len(rows) != len(ids):
         raise RuntimeError(f"prediction count mismatch: got {len(rows)}, expected {len(ids)}")
 
@@ -134,6 +147,7 @@ def main() -> None:
         "split_sha256": sha256(args.split),
         "image_roots": [str(p) for p in args.image_root],
         "n_samples": len(ids),
+        "partial_smoke_run": args.limit is not None,
         "inference_device": args.device,
         "batch_size": args.batch_size,
         "elapsed_seconds": elapsed,
