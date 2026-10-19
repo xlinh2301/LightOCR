@@ -3,6 +3,7 @@ set -euo pipefail
 
 CAMPAIGN=/workspace/media/gmo/linhnx/workspace/workdir_Research/results/lightocr_loopocr_v1_screen_20261019
 REPO=/workspace/media/gmo/linhnx/workspace/workdir_Research/source/LightOCR-1M-architecture-loop
+PYTHON=/workspace/media/gmo/linhnx/workspace/workdir_Research/results/lightocr_loopocr_v1_screen_20261019/envs/paddleocr3_cu118/bin/python
 RUN_ID=teacher_latin_ppocrv5_mobile_rec_zero_shot
 OUT="$CAMPAIGN/$RUN_ID"
 LOG_DIR="$CAMPAIGN/${RUN_ID}_logs"
@@ -18,7 +19,12 @@ if [[ -e "$OUT" ]]; then
   exit 2
 fi
 
-nohup env PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True python -u \
+if [[ ! -x "$PYTHON" ]]; then
+  echo "Missing isolated Paddle 3 interpreter: $PYTHON" >&2
+  exit 2
+fi
+
+nohup env PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True "$PYTHON" -u \
   "$REPO/research_loop/pretrained_teachers/evaluate_paddlex_recognition.py" \
   --model-name latin_PP-OCRv5_mobile_rec \
   --split "$CAMPAIGN/local_split2201_source/EditCTC/experiments/PAE_CTC/pilot_007/cache/model_dev.jsonl" \
